@@ -699,6 +699,7 @@ function Dashboard({ session }: { session: Session }) {
 
   async function fastForward(days: number) {
     if (!currentRound) return;
+    if (!confirm(`Move this circle's shared round forward by ${days} day${days === 1 ? "" : "s"}? This changes the live submission and rating deadlines for every member.`)) return;
     const shift = (iso: string) => new Date(new Date(iso).getTime() - days * 86400000).toISOString();
     const { error } = await supabase.from("rounds").update({
       starts_at: shift(currentRound.starts_at),
@@ -780,7 +781,7 @@ function Dashboard({ session }: { session: Session }) {
               <span><Users size={15} /> {approved.length}/8</span>
               <button onClick={leaveGroup} title="Leave circle"><LogOut size={16} /></button>
               {isAdmin && <button onClick={() => setShowAdmin(true)} title="Circle administration"><ShieldCheck size={17} /></button>}
-              {isAdmin && process.env.NODE_ENV === "development" && <button onClick={() => setShowSettings(!showSettings)} title="Development tools"><Settings2 size={17} /></button>}
+              {isAdmin && <button onClick={() => setShowSettings(!showSettings)} title="Time Machine"><Settings2 size={17} /></button>}
             </div>
           </section>
 
@@ -791,11 +792,11 @@ function Dashboard({ session }: { session: Session }) {
             </section>
           )}
 
-          {view === "round" && showSettings && isAdmin && process.env.NODE_ENV === "development" && (
+          {view === "round" && showSettings && isAdmin && (
             <section className="dev-card">
-              <div><Settings2 size={18} /><div><strong>Time Machine</strong><small>Development only · shift this round forward</small></div></div>
+              <div><Settings2 size={18} /><div><strong>Time Machine</strong><small>Admin only · shift this circle’s live round forward</small></div></div>
               <div>{[1, 5, 12].map((days) => <button key={days} onClick={() => fastForward(days)}>+{days} day{days > 1 ? "s" : ""}</button>)}</div>
-              <button onClick={seedDummyData}>Add dummy data</button>
+              {process.env.NODE_ENV === "development" && <button onClick={seedDummyData}>Add dummy data</button>}
             </section>
           )}
 

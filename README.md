@@ -32,8 +32,9 @@ npx supabase@latest status
 - Browser push is opt-in per user and per circle.
 - Spotify and YouTube metadata uses public oEmbed endpoints by default, avoiding
   paid API quotas.
-- Development-only Time Machine and dummy-data tools are excluded from
-  production behavior.
+- Time Machine is available only to circle admins and asks for confirmation
+  before changing the shared round deadlines.
+- Dummy-data tools are excluded from production behavior.
 
 ## Scheduled rounds and notifications
 
