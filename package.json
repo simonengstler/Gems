@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:sites": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -17,8 +18,8 @@
     "next": "16.2.12",
     "next-intl": "^4.13.4",
     "radix-ui": "^1.6.7",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "resend": "^6.18.0",
     "shadcn": "^4.15.0",
     "tailwind-merge": "^3.6.0",
@@ -26,14 +27,22 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.37.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/web-push": "^3.6.4",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@vitejs/plugin-rsc": "^0.5.26",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
+    "react-server-dom-webpack": "^19.2.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
-  }
+    "typescript": "^5",
+    "vinext": "^0.0.50",
+    "vite": "^8.0.13",
+    "wrangler": "^4.92.0"
+  },
+  "type": "module"
 }
