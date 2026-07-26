@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Gems
 
-## Getting Started
+Gems is a private, 12-day music discovery ritual for groups of 2–8 people.
+Members submit one Spotify or YouTube link, listen and react during the rating
+phase, then keep the leaderboard and reactions in a permanent round archive.
 
-First, run the development server:
+## Local development
+
+Requirements: Node.js 20.9+, Docker Desktop, and npm.
 
 ```bash
+npx supabase@latest start
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Supabase Studio is
+available at [http://127.0.0.1:54323](http://127.0.0.1:54323).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy `.env.example` to `.env.local` when configuring a new environment. Local
+Supabase credentials come from:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npx supabase@latest status
+```
 
-## Learn More
+## Safety defaults
 
-To learn more about Next.js, take a look at the following resources:
+- Resend email delivery is off for every new circle.
+- No email can be sent unless both `RESEND_API_KEY` is configured and a circle
+  admin enables its master email switch.
+- Browser push is opt-in per user and per circle.
+- Spotify and YouTube metadata uses public oEmbed endpoints by default, avoiding
+  paid API quotas.
+- Development-only Time Machine and dummy-data tools are excluded from
+  production behavior.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Scheduled rounds and notifications
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Call `GET /api/cron/rounds` on a regular schedule. In production, provide
+`Authorization: Bearer $CRON_SECRET`. The endpoint:
 
-## Deploy on Vercel
+- starts new rounds for circles that enabled automation;
+- sends idempotent round-started, rating-started, and streak-warning messages;
+- respects every circle’s email and push switches;
+- performs dry runs when Resend is not configured.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Validation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run lint
+npm run build
+```

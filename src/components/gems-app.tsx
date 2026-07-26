@@ -4,6 +4,7 @@ import {
   Check,
   ChevronRight,
   Clock3,
+  Copy,
   Flame,
   Gem,
   History,
@@ -30,6 +31,7 @@ type Group = {
   rules: string | null;
   created_by: string;
   created_at: string;
+  archived_at?: string | null;
 };
 type Member = {
   id: string;
@@ -229,7 +231,12 @@ function AuthScreen() {
 function GroupSetup({ onDone }: { onDone: () => void }) {
   const [tab, setTab] = useState<"create" | "join">("create");
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const result = sessionStorage.getItem("gems-invite-result") || "";
+    sessionStorage.removeItem("gems-invite-result");
+    return result;
+  });
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -285,6 +292,7 @@ function GroupSetup({ onDone }: { onDone: () => void }) {
 
 function UserPanel({ profile, close }: { profile: Profile; close: () => void }) {
   const [stats, setStats] = useState<Record<Emoji, number>>({ "🖤": 0, "❤️": 0, "👍": 0, "👌": 0, "🤔": 0 });
+  const [summary, setSummary] = useState({ gems: 0, ratings: 0, points: 0, bestScore: 0 });
   const [message, setMessage] = useState("");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Profile[]>([]);
@@ -294,10 +302,19 @@ function UserPanel({ profile, close }: { profile: Profile; close: () => void }) 
       const { data: songs } = await supabase.from("submissions").select("id").eq("user_id", profile.id);
       const ids = (songs || []).map((song) => song.id);
       if (!ids.length) return;
-      const { data } = await supabase.from("ratings").select("emoji").in("submission_id", ids);
+      const { data } = await supabase.from("ratings").select("emoji,points,submission_id").in("submission_id", ids);
+      const { count: ratingsGiven } = await supabase.from("ratings").select("id", { count: "exact", head: true }).eq("user_id", profile.id);
       const next: Record<Emoji, number> = { "🖤": 0, "❤️": 0, "👍": 0, "👌": 0, "🤔": 0 };
       for (const rating of data || []) next[rating.emoji as Emoji] += 1;
       setStats(next);
+      const bySong = new Map<string, number>();
+      for (const rating of data || []) bySong.set(rating.submission_id, (bySong.get(rating.submission_id) || 0) + rating.points);
+      setSummary({
+        gems: ids.length,
+        ratings: ratingsGiven || 0,
+        points: (data || []).reduce((sum, rating) => sum + rating.points, 0),
+        bestScore: Math.max(0, ...bySong.values()),
+      });
     }
     void loadStats();
   }, [profile.id]);
@@ -317,6 +334,26 @@ function UserPanel({ profile, close }: { profile: Profile; close: () => void }) 
     if (error) setMessage(error.message); else setResults((data || []) as Profile[]);
   }
 
+  async function enablePush() {
+    const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    if (!publicKey) return setMessage("Push keys are not configured yet. Add the VAPID keys from .env.example.");
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return setMessage("This browser does not support web push.");
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") return setMessage("Notification permission was not granted.");
+    const registration = await navigator.serviceWorker.ready;
+    const padding = "=".repeat((4 - publicKey.length % 4) % 4);
+    const base64 = (publicKey + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const key = Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
+    const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+    const { data } = await supabase.auth.getSession();
+    const response = await fetch("/api/push/subscribe", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${data.session?.access_token || ""}` },
+      body: JSON.stringify(subscription),
+    });
+    setMessage(response.ok ? "Push notifications enabled on this device." : "Could not save this device.");
+  }
+
   return (
     <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && close()}>
       <section className="profile-modal">
@@ -332,8 +369,10 @@ function UserPanel({ profile, close }: { profile: Profile; close: () => void }) 
             <span className="eyebrow">Security</span>
             <h3>Change password</h3>
             <form onSubmit={changePassword} className="form-stack"><label>New password<input name="password" type="password" minLength={8} required placeholder="At least 8 characters" /></label><button className="primary-button">Update password</button></form>
+            <button className="push-button" onClick={enablePush}>Enable browser notifications</button>
           </article>
         </div>
+        <div className="profile-summary"><div><strong>{summary.gems}</strong><small>gems shared</small></div><div><strong>{summary.ratings}</strong><small>ratings given</small></div><div><strong>{summary.points}</strong><small>points earned</small></div><div><strong>{summary.bestScore}</strong><small>best gem score</small></div></div>
         <article className="people-search">
           <span className="eyebrow">Community</span>
           <h3>Find a listener</h3>
@@ -341,6 +380,119 @@ function UserPanel({ profile, close }: { profile: Profile; close: () => void }) 
           {results.length > 0 && <div className="search-results">{results.map((user) => <div key={user.id}><span className="avatar">{user.nickname.slice(0, 1).toUpperCase()}</span><strong>{user.nickname}</strong><small><Flame size={12} /> {user.streak} streak</small></div>)}</div>}
         </article>
         {message && <p className="form-message">{message}</p>}
+      </section>
+    </div>
+  );
+}
+
+function AdminPanel({ group, members, rounds, submissions, close, refresh, notify }: {
+  group: Group; members: Member[]; rounds: Round[]; submissions: Submission[];
+  close: () => void; refresh: () => void; notify: (message: string) => void;
+}) {
+  const [settings, setSettings] = useState({
+    email_notifications_enabled: false,
+    round_started_email: true,
+    rating_started_email: true,
+    streak_warning_email: true,
+    auto_start_rounds: false,
+    push_notifications_enabled: true,
+  });
+  const [inviteUrl, setInviteUrl] = useState("");
+  const [rules, setRules] = useState(group.rules || "");
+
+  useEffect(() => {
+    supabase.from("group_settings").select("*").eq("group_id", group.id).single()
+      .then(({ data }) => { if (data) setSettings(data); });
+  }, [group.id]);
+
+  async function toggle(key: keyof typeof settings) {
+    const next = { ...settings, [key]: !settings[key] };
+    setSettings(next);
+    const { error } = await supabase.from("group_settings").update({ [key]: next[key] }).eq("group_id", group.id);
+    if (error) notify(error.message);
+  }
+
+  async function createInvite() {
+    const { data: auth } = await supabase.auth.getUser();
+    const { data, error } = await supabase.from("group_invitations").insert({
+      group_id: group.id, created_by: auth.user!.id,
+    }).select("token").single();
+    if (error) return notify(error.message);
+    const url = `${location.origin}/?invite=${data.token}`;
+    setInviteUrl(url);
+    await navigator.clipboard.writeText(url);
+    notify("Invitation copied. It expires in 14 days.");
+  }
+
+  async function changeMember(member: Member, action: "promote" | "remove") {
+    const result = action === "promote"
+      ? await supabase.from("group_members").update({ role: "admin" }).eq("id", member.id)
+      : await supabase.from("group_members").delete().eq("id", member.id);
+    if (result.error) notify(result.error.message);
+    else { notify(action === "promote" ? "Member promoted." : "Member removed."); refresh(); }
+  }
+
+  async function saveRules() {
+    const { error } = await supabase.from("groups").update({ rules: rules.trim() || null }).eq("id", group.id);
+    if (error) notify(error.message); else { notify("Circle rules updated."); refresh(); }
+  }
+
+  async function archiveGroup() {
+    if (!confirm("Archive this circle? Its history remains in the database.")) return;
+    const { error } = await supabase.from("groups").update({ archived_at: new Date().toISOString() }).eq("id", group.id);
+    if (error) notify(error.message); else { notify("Circle archived."); close(); location.reload(); }
+  }
+
+  const limits = [
+    ["Supabase", "500 MB database", "50k MAU · 5 GB egress · 1 GB files · 2 projects", "https://supabase.com/pricing"],
+    ["Supabase Realtime", "2M messages/month", "200 peak connections · 500k Edge calls", "https://supabase.com/pricing"],
+    ["Resend", "3,000 emails/month", "100/day · 5 requests/sec · master switch is off", "https://resend.com/pricing"],
+    ["YouTube Data API", "10,000 units/day", "100 searches/day · Gems uses no-key oEmbed by default", "https://developers.google.com/youtube/v3/determine_quota_cost"],
+    ["Spotify", "Variable 30-second quota", "Development mode: Premium owner + 5 allowlisted users", "https://developer.spotify.com/documentation/web-api/concepts/quota-modes"],
+    ["Vercel Hobby", "Not connected", "Confirm current limits before production deployment", "https://vercel.com/pricing"],
+  ];
+
+  return (
+    <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && close()}>
+      <section className="profile-modal admin-modal">
+        <button className="modal-close" onClick={close}><X size={18} /></button>
+        <div className="profile-head"><span className="large-avatar"><ShieldCheck /></span><div><span className="eyebrow">Circle administration</span><h2>{group.name}</h2><p>{members.filter((m) => m.status === "approved").length}/8 members · {rounds.length} rounds</p></div></div>
+        <div className="admin-grid">
+          <article>
+            <span className="eyebrow">Automation</span><h3>Cost-safe controls</h3>
+            {([
+              ["email_notifications_enabled", "Email notifications", "Master switch — keep off in development"],
+              ["round_started_email", "Round started email", "Prompt the circle to submit"],
+              ["rating_started_email", "Rating unlocked email", "Announce the listening phase"],
+              ["streak_warning_email", "Streak warning email", "Warn 12 hours before closing"],
+              ["push_notifications_enabled", "Browser push", "Free delivery to opted-in devices"],
+              ["auto_start_rounds", "Automatic new rounds", "Begin again after the reveal"],
+            ] as const).map(([key, title, description]) => (
+              <label className="setting-row" key={key}><div><strong>{title}</strong><small>{description}</small></div><input type="checkbox" checked={settings[key]} onChange={() => toggle(key)} /></label>
+            ))}
+          </article>
+          <article>
+            <span className="eyebrow">Invitations</span><h3>Bring people in</h3>
+            <p className="admin-copy">Private links expire after 14 days. New members still require approval.</p>
+            <button className="primary-button" onClick={createInvite}><Copy size={15} /> Copy invitation</button>
+            {inviteUrl && <input className="invite-output" value={inviteUrl} readOnly />}
+            <div className="usage-summary"><div><strong>{members.length}</strong><small>members</small></div><div><strong>{rounds.length}</strong><small>rounds</small></div><div><strong>{submissions.length}</strong><small>gems</small></div></div>
+          </article>
+        </div>
+        <article className="member-admin">
+          <span className="eyebrow">Membership</span><h3>People in this circle</h3>
+          {members.filter((member) => member.status === "approved").map((member) => <div key={member.id}><span className="avatar">{member.users?.nickname?.slice(0,1)}</span><strong>{member.users?.nickname}</strong><small>{member.role}</small>{member.role !== "admin" && <><button onClick={() => changeMember(member, "promote")}>Make admin</button><button className="danger-link" onClick={() => changeMember(member, "remove")}>Remove</button></>}</div>)}
+        </article>
+        <article className="member-admin">
+          <span className="eyebrow">Circle details</span><h3>Rules and lifecycle</h3>
+          <textarea value={rules} onChange={(event) => setRules(event.target.value)} maxLength={5000} placeholder="Write the house rules…" />
+          <div className="admin-actions"><button className="primary-button" onClick={saveRules}>Save rules</button><button className="archive-button" onClick={archiveGroup}>Archive circle</button></div>
+        </article>
+        <article className="limits-card">
+          <span className="eyebrow">Free-tier guardrails · verified July 2026</span><h3>Service limits</h3>
+          <div className="limits-grid">{limits.map(([service, value, note, href]) => <a key={service} href={href} target="_blank" rel="noreferrer"><strong>{service}</strong><b>{value}</b><small>{note}</small><ChevronRight size={14} /></a>)}</div>
+          <p>Reference values—not live billing meters. Follow a card to confirm the provider’s latest terms.</p>
+        </article>
       </section>
     </div>
   );
@@ -399,7 +551,9 @@ function Dashboard({ session }: { session: Session }) {
   const [showSettings, setShowSettings] = useState(false);
   const [showGroupSetup, setShowGroupSetup] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
   const [view, setView] = useState<"round" | "history">("round");
+  const [expandedRound, setExpandedRound] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
 
   const loadGroups = useCallback(async () => {
@@ -408,7 +562,7 @@ function Dashboard({ session }: { session: Session }) {
     const { data: memberships } = await supabase.from("group_members").select("group_id,status").eq("user_id", session.user.id);
     const approvedIds = (memberships || []).filter((m) => m.status === "approved").map((m) => m.group_id);
     if (approvedIds.length) {
-      const { data } = await supabase.from("groups").select("*").in("id", approvedIds).order("created_at");
+      const { data } = await supabase.from("groups").select("*").in("id", approvedIds).is("archived_at", null).order("created_at");
       setGroups(data || []);
       setSelectedId((current) => current || data?.[0]?.id || "");
     } else {
@@ -496,7 +650,21 @@ function Dashboard({ session }: { session: Session }) {
       setNotice("Paste a valid Spotify track/album or YouTube video/short link.");
       return;
     }
-    const payload = { group_id: selectedId, round_id: currentRound.id, user_id: session.user.id, song_url: songUrl.trim() };
+    let metadata: { title?: string; artist?: string; thumbnailUrl?: string; provider?: string } = {};
+    try {
+      const response = await fetch(`/api/metadata?url=${encodeURIComponent(songUrl.trim())}`);
+      if (response.ok) metadata = await response.json();
+    } catch {}
+    const payload = {
+      group_id: selectedId,
+      round_id: currentRound.id,
+      user_id: session.user.id,
+      song_url: songUrl.trim(),
+      title: metadata.title || null,
+      artist: metadata.artist || null,
+      thumbnail_url: metadata.thumbnailUrl || null,
+      provider: metadata.provider || null,
+    };
     const { error } = await supabase.from("submissions").upsert(payload, { onConflict: "round_id,user_id" });
     if (error) setNotice(error.message); else { setNotice(mySubmission ? "Your gem was updated." : "Your gem is locked in."); loadGroup(); }
   }
@@ -520,6 +688,13 @@ function Dashboard({ session }: { session: Session }) {
       approved_by: status === "approved" ? session.user.id : null,
     }).eq("id", member.id);
     if (error) setNotice(error.message); else loadGroup();
+  }
+
+  async function leaveGroup() {
+    if (!group || !confirm(`Leave ${group.name}?`)) return;
+    const { error } = await supabase.rpc("leave_group", { target_group_id: group.id });
+    if (error) setNotice(error.message);
+    else { setNotice("You left the circle."); setSelectedId(""); await loadGroups(); }
   }
 
   async function fastForward(days: number) {
@@ -585,6 +760,7 @@ function Dashboard({ session }: { session: Session }) {
       </header>
       {notice && <Notice message={notice} clear={() => setNotice("")} />}
       {showProfile && <UserPanel profile={profile} close={() => setShowProfile(false)} />}
+      {showAdmin && group && <AdminPanel group={group} members={members} rounds={rounds} submissions={submissions} close={() => setShowAdmin(false)} refresh={() => { loadGroups(); loadGroup(); }} notify={setNotice} />}
       {showGroupSetup && <div className="modal-backdrop"><div className="group-modal"><button className="modal-close" onClick={() => setShowGroupSetup(false)}><X size={18} /></button><GroupSetup onDone={() => { setShowGroupSetup(false); loadGroups(); }} /></div></div>}
       <main className="dashboard">
         <aside>
@@ -602,7 +778,9 @@ function Dashboard({ session }: { session: Session }) {
             <div className="hero-meta">
               {currentRound && <span>Round {currentRound.round_number}</span>}
               <span><Users size={15} /> {approved.length}/8</span>
-              {isAdmin && <button onClick={() => setShowSettings(!showSettings)}><Settings2 size={17} /></button>}
+              <button onClick={leaveGroup} title="Leave circle"><LogOut size={16} /></button>
+              {isAdmin && <button onClick={() => setShowAdmin(true)} title="Circle administration"><ShieldCheck size={17} /></button>}
+              {isAdmin && process.env.NODE_ENV === "development" && <button onClick={() => setShowSettings(!showSettings)} title="Development tools"><Settings2 size={17} /></button>}
             </div>
           </section>
 
@@ -675,10 +853,23 @@ function Dashboard({ session }: { session: Session }) {
           {view === "history" && <section id="history" className="history-section history-page">
             <div className="section-title"><div><span className="eyebrow">The vault</span><h2>Listening history</h2></div></div>
             {rounds.filter((round) => phaseOf(round) === "reveal").length === 0 ? <div className="history-empty"><History size={24} /><span>Completed rounds will live here forever.</span></div> :
-              rounds.filter((round) => phaseOf(round) === "reveal").map((round) => <div className="history-row" key={round.id}><span><Gem size={17} /></span><div><strong>Round {round.round_number}</strong><small>{new Date(round.starts_at).toLocaleDateString("en", { month: "long", day: "numeric", year: "numeric" })}</small></div><div>{submissions.filter((item) => item.round_id === round.id).length} gems</div><ChevronRight size={17} /></div>)}
+              rounds.filter((round) => phaseOf(round) === "reveal").map((round) => {
+                const songs = submissions.filter((item) => item.round_id === round.id).map((song) => ({
+                  ...song,
+                  reactions: ratings.filter((rating) => rating.submission_id === song.id),
+                  score: ratings.filter((rating) => rating.submission_id === song.id).reduce((sum, rating) => sum + rating.points, 0),
+                })).sort((a, b) => b.score - a.score);
+                return <div className="history-entry" key={round.id}><button className="history-row" onClick={() => setExpandedRound(expandedRound === round.id ? null : round.id)}><span><Gem size={17} /></span><div><strong>Round {round.round_number}</strong><small>{new Date(round.starts_at).toLocaleDateString("en", { month: "long", day: "numeric", year: "numeric" })}</small></div><div>{songs.length} gems</div><ChevronRight className={expandedRound === round.id ? "rotate" : ""} size={17} /></button>{expandedRound === round.id && <div className="history-detail">{songs.map((song, index) => <div key={song.id}><span>#{index + 1}</span>{song.thumbnail_url ? <span className="history-art" role="img" aria-label="" style={{ backgroundImage: `url("${song.thumbnail_url}")` }} /> : <span className="mini-cover"><Music2 size={15} /></span>}<div><strong>{song.title || `${song.users?.nickname}'s gem`}</strong><small>{song.artist || song.users?.nickname}</small></div><span className="history-reactions">{song.reactions.map((reaction) => reaction.emoji).join(" ")}</span><b>{song.score} pts</b><a href={song.song_url} target="_blank" rel="noreferrer"><ChevronRight size={15} /></a></div>)}</div>}</div>;
+              })}
           </section>}
         </div>
       </main>
+      <nav className="mobile-nav">
+        <button className={view === "round" ? "active" : ""} onClick={() => setView("round")}><Gem size={18} /><span>Round</span></button>
+        <button className={view === "history" ? "active" : ""} onClick={() => setView("history")}><History size={18} /><span>History</span></button>
+        <button onClick={() => setShowProfile(true)}><UserRound size={18} /><span>Profile</span></button>
+        {isAdmin && <button onClick={() => setShowAdmin(true)}><ShieldCheck size={18} /><span>Admin</span></button>}
+      </nav>
     </div>
   );
 }
@@ -701,6 +892,21 @@ export function GemsApp() {
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession));
     return () => data.subscription.unsubscribe();
   }, []);
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+    }
+  }, []);
+  useEffect(() => {
+    if (!session) return;
+    const token = new URLSearchParams(location.search).get("invite");
+    if (!token) return;
+    supabase.rpc("join_group_by_invite", { invite_token: token }).then(({ error }) => {
+      sessionStorage.setItem("gems-invite-result", error ? error.message : "Invitation accepted. The circle admin can now approve you.");
+      history.replaceState({}, "", location.pathname);
+      location.reload();
+    });
+  }, [session]);
   if (session === undefined) return <div className="full-loader"><Gem className="pulse" size={34} /></div>;
   return session ? <Dashboard session={session} /> : <AuthScreen />;
 }

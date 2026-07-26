@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
   const admin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SECRET_KEY!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { persistSession: false, autoRefreshToken: false } },
   );
   const { data: authData, error: authError } = await admin.auth.getUser(token);
