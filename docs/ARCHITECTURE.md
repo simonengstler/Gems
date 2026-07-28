@@ -75,7 +75,8 @@ Supporting tables:
 Database triggers enforce updated timestamps, immutable names, membership
 limits, minimum round membership, submission/rating windows, default settings,
 and streak finalization. SQL functions provide safe membership checks, joining,
-leaving, invitation handling, and limited user search.
+leaving, invitation handling, limited user search, and atomic admin-only phase
+completion after all required participation is present.
 
 All schema changes are forward-only migrations in `supabase/migrations/`.
 
@@ -119,6 +120,10 @@ Round timestamps are stored in UTC:
 The browser derives the phase from these timestamps. Starting a new round
 finalizes the previous round's streaks. Automatic starts are not continuously
 running inside Next.js; they require calls to `/api/cron/rounds`.
+
+`complete_round_phase` locks the active round, verifies circle-admin access,
+counts approved members, submissions, and ratings, and advances the relevant
+deadline only when the whole phase is complete.
 
 Time Machine preserves the round’s configured relationship by shifting all
 three timestamps backward together. It is an admin-only production capability

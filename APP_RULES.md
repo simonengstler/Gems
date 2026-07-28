@@ -63,6 +63,8 @@ alter a round already in progress.
 - A member may replace their own submission until the submission deadline.
 - Other members can see submission progress, but titles, artists, URLs, and
   submitter identities remain hidden until rating begins.
+- Once every approved member has submitted, a circle admin may end the choosing
+  interval immediately and open rating for the whole circle.
 
 ### Phase 2: Rate
 
@@ -81,6 +83,8 @@ alter a round already in progress.
 | 🤔 | 0 | Interesting choice, but it does not appeal to me. |
 
 - Rating progress is visible without publishing the final ranking early.
+- Once every approved member has rated every submission, a circle admin may end
+  the rating interval immediately and reveal the results.
 
 ### Phase 3: Reveal and history
 
@@ -125,6 +129,8 @@ alter a round already in progress.
 - The production seed endpoint must reject every request.
 - Platform administration is a separate allowlist-backed role. It is not
   implied by being a circle admin.
+- Early phase completion is checked atomically by the database and requires
+  confirmation because it changes the shared live deadline.
 
 ## 8. Product boundaries
 

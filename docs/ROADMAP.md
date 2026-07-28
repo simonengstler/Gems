@@ -21,6 +21,7 @@ its status changes; do not duplicate the same item in multiple sections.
   profile drill-down within existing access.
 - Circle admin view with rules, lifecycle, invitations, notification controls,
   interval settings, and member management.
+- Admin-only early phase completion after all submissions or ratings are done.
 - Separate allowlisted platform-operator view for service-limit references.
 - One-glance product home page linked from the Gems brand.
 - Browser push subscription and idempotent notification delivery logic.

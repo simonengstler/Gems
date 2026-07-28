@@ -103,6 +103,7 @@ aside { padding: 8px 12px 0 0; }
 .group-hero p { margin: 0; color: var(--muted); font-family: Georgia, serif; font-size: 14px; font-style: italic; }
 .hero-meta { display: flex; align-items: center; gap: 8px; padding-top: 10px; }
 .hero-meta > span { display: flex; align-items: center; gap: 5px; padding: 7px 10px; color: #68716c; background: rgba(255,255,255,.7); border: 1px solid #dfdfd8; border-radius: 20px; font-size: 10px; }
+.hero-meta .admin-entry { display: flex; align-items: center; gap: 5px; padding: 7px 10px; border: 1px solid #cbdcd3; border-radius: 20px; color: var(--green); background: #edf5f1; font-size: 10px; font-weight: 750; }
 .round-status { display: flex; align-items: center; padding: 18px 22px; margin-bottom: 18px; border: 1px solid #deded7; border-radius: 13px; background: rgba(255,255,255,.62); }
 .phase-step { display: flex; align-items: center; gap: 9px; opacity: .45; }
 .phase-step > span { width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid #bfc5c0; border-radius: 50%; font-size: 11px; font-weight: 800; }
@@ -123,8 +124,11 @@ aside { padding: 8px 12px 0 0; }
 .section-title { display: flex; justify-content: space-between; gap: 20px; }
 .section-title h2, .reveal-card h2, .empty-state h2 { margin: 7px 0 8px; font-size: clamp(27px, 3vw, 38px); letter-spacing: -.055em; line-height: 1.05; }
 .section-title p, .reveal-card > p, .empty-state > p { max-width: 610px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
-.progress-ring { --progress: 45deg; position: relative; width: 80px; height: 80px; flex: 0 0 auto; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: conic-gradient(var(--green) var(--progress), #d9e9e1 0); }
-.progress-ring:before { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: var(--paper); }
+.progress-ring { position: relative; width: 80px; height: 80px; flex: 0 0 auto; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.progress-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.progress-ring circle { fill: none; stroke-width: 5; }
+.progress-track { stroke: #d9e9e1; }
+.progress-fill { stroke: var(--green); stroke-linecap: round; transition: stroke-dasharray .35s ease; }
 .progress-ring strong, .progress-ring small { position: relative; z-index: 1; }
 .progress-ring strong { font-size: 15px; }
 .progress-ring small { color: var(--muted); font-size: 8px; text-transform: uppercase; letter-spacing: .08em; }
@@ -286,6 +290,8 @@ aside { padding: 8px 12px 0 0; }
 .member-admin button { padding: 5px 8px; border: 1px solid #d8d9d4; border-radius: 6px; background: white; cursor: pointer; font-size: 9px; }
 .member-admin .danger-link { color: var(--danger); }
 .admin-actions { margin-top: 10px; display: flex; gap: 8px; }
+.admin-actions .primary-button { min-height: 39px; padding: 0 14px; border: 0; color: white; background: var(--green); font-size: 10px; font-weight: 750; }
+.admin-actions .primary-button:hover { color: white; background: #0e3d2e; }
 .archive-button { padding: 0 14px; border: 1px solid #e2c8c5; border-radius: 9px; color: var(--danger); background: #fff7f6; cursor: pointer; font-size: 10px; font-weight: 700; }
 .limits-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .limits-grid a { position: relative; min-height: 110px; padding: 13px; display: flex; flex-direction: column; border: 1px solid #e2e2dc; border-radius: 10px; color: inherit; background: white; text-decoration: none; }
@@ -302,6 +308,11 @@ aside { padding: 8px 12px 0 0; }
 .home-principles span { color: var(--gold); font-family: var(--font-geist-mono); font-size: 11px; font-weight: 800; }
 .home-principles h2 { margin: 12px 0 8px; font-size: 18px; }
 .home-principles p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+.phase-complete-action { margin-top: 18px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border: 1px solid #bcd8ca; border-radius: 12px; background: #edf6f1; }
+.phase-complete-action > div { display: flex; align-items: center; gap: 10px; color: var(--green); }
+.phase-complete-action > div > span { display: flex; flex-direction: column; gap: 2px; }
+.phase-complete-action strong { font-size: 11px; }
+.phase-complete-action small { color: var(--muted); font-size: 9px; }
 
 @media (max-width: 950px) {
   .auth-shell { grid-template-columns: 1fr; }
@@ -335,6 +346,7 @@ aside { padding: 8px 12px 0 0; }
   .song-grid { grid-template-columns: 1fr; }
   .rating-legend { display: grid; grid-template-columns: 1fr; }
   .admin-card, .dev-card { align-items: flex-start; flex-direction: column; }
+  .phase-complete-action { align-items: stretch; flex-direction: column; }
   .request-row { width: 100%; margin: 0; }
   .setup-card { padding: 32px 22px; }
   .mobile-nav { position: fixed; z-index: 40; left: 10px; right: 10px; bottom: 8px; height: 58px; padding: 5px; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid #d8dad5; border-radius: 15px; background: rgba(255,254,250,.95); box-shadow: 0 10px 30px rgba(20,42,32,.18); backdrop-filter: blur(14px); }

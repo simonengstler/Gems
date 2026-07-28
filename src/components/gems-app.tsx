@@ -132,6 +132,20 @@ function Logo({ onClick }: { onClick?: () => void }) {
   );
 }
 
+function ProgressRing({ value, total, label }: { value: number; total: number; label: string }) {
+  const percentage = total > 0 ? Math.min(100, Math.max(0, value / total * 100)) : 0;
+  return (
+    <div className="progress-ring" role="progressbar" aria-label={`${value} of ${total} ${label}`} aria-valuemin={0} aria-valuemax={total} aria-valuenow={value}>
+      <svg viewBox="0 0 44 44" aria-hidden="true">
+        <circle className="progress-track" cx="22" cy="22" r="18" />
+        <circle className="progress-fill" cx="22" cy="22" r="18" pathLength="100" strokeDasharray={`${percentage} 100`} />
+      </svg>
+      <strong>{value}/{total}</strong>
+      <small>{label}</small>
+    </div>
+  );
+}
+
 function Notice({ message, clear }: { message: string; clear: () => void }) {
   return (
     <div className="notice" role="status">
@@ -749,6 +763,29 @@ function Dashboard({ session }: { session: Session }) {
     if (error) { setNotice(error.message); loadGroup(); } else loadGroup();
   }
 
+  async function endCurrentPhase() {
+    if (!currentRound || !isAdmin) return;
+    const allSubmitted = approved.length > 0 && currentSubmissions.length === approved.length;
+    const expectedRatings = approved.length * currentSubmissions.length;
+    const allRated = expectedRatings > 0 && currentRatings.length === expectedRatings;
+    if (phase === "submit" && !allSubmitted) {
+      setNotice("Every approved member must submit before the choosing interval can end.");
+      return;
+    }
+    if (phase === "rate" && !allRated) {
+      setNotice("Every required reaction must be complete before the rating interval can end.");
+      return;
+    }
+    const nextPhase = phase === "submit" ? "rating" : "reveal";
+    if (!confirm(`End the ${phase === "submit" ? "choosing" : "rating"} interval now and move the whole circle to ${nextPhase}?`)) return;
+    const { error } = await supabase.rpc("complete_round_phase", { target_round_id: currentRound.id });
+    if (error) setNotice(error.message);
+    else {
+      setNotice(phase === "submit" ? "Choosing complete. Rating is now open." : "Rating complete. The results are revealed.");
+      await loadGroup();
+    }
+  }
+
   async function approve(member: Member, status: "approved" | "rejected") {
     const { error } = await supabase.from("group_members").update({
       status,
@@ -852,7 +889,7 @@ function Dashboard({ session }: { session: Session }) {
               {currentRound && <span>Round {currentRound.round_number}</span>}
               <span><Users size={15} /> {approved.length}/8</span>
               <button onClick={leaveGroup} title="Leave circle"><LogOut size={16} /></button>
-              {isAdmin && <button onClick={() => setShowAdmin(true)} title="Circle administration"><ShieldCheck size={17} /></button>}
+              {isAdmin && <button className="admin-entry" onClick={() => setShowAdmin(true)} title="Circle administration"><ShieldCheck size={17} /><span>Admin</span></button>}
               {isAdmin && <button onClick={() => setShowSettings(!showSettings)} title="Time Machine"><Settings2 size={17} /></button>}
             </div>
           </section>}
@@ -887,7 +924,7 @@ function Dashboard({ session }: { session: Session }) {
 
           {view === "round" && phase === "submit" && (
             <section className="content-card submit-card">
-              <div className="section-title"><div><span className="eyebrow">Submission phase</span><h2>{mySubmission ? "Your gem is in." : "What’s your gem?"}</h2><p>{mySubmission ? "You can swap it anytime before the countdown ends." : "Share one track or album. Nobody sees what it is until rating begins."}</p></div><div className="progress-ring"><strong>{currentSubmissions.length}/{approved.length}</strong><small>submitted</small></div></div>
+              <div className="section-title"><div><span className="eyebrow">Submission phase</span><h2>{mySubmission ? "Your gem is in." : "What’s your gem?"}</h2><p>{mySubmission ? "You can swap it anytime before the countdown ends." : "Share one track or album. Nobody sees what it is until rating begins."}</p></div><ProgressRing value={currentSubmissions.length} total={approved.length} label="submitted" /></div>
               <form onSubmit={saveSubmission} className="song-form">
                 <Music2 size={18} />
                 <input value={songUrl} onChange={(e) => setSongUrl(e.target.value)} placeholder={mySubmission ? "Paste a new Spotify or YouTube link to swap" : "Paste a Spotify or YouTube link"} required />
@@ -901,14 +938,16 @@ function Dashboard({ session }: { session: Session }) {
                   return <div key={member.id} className={done ? "done" : ""}><span>{member.users?.nickname?.slice(0, 1).toUpperCase()}</span><strong>{member.users?.nickname}</strong><small>{done ? "Gem secured" : "Choosing…"}</small>{done && <Check size={14} />}</div>;
                 })}
               </div>
+              {isAdmin && currentSubmissions.length === approved.length && approved.length > 0 && <div className="phase-complete-action"><div><Check size={18} /><span><strong>Every gem is in.</strong><small>You can open rating now instead of waiting for the countdown.</small></span></div><button className="primary-button compact" onClick={endCurrentPhase}>End choosing interval</button></div>}
             </section>
           )}
 
           {view === "round" && phase === "rate" && (
             <section className="rating-section">
-              <div className="section-title"><div><span className="eyebrow">The gems are unlocked</span><h2>Listen with intention.</h2><p>Rate every song with exactly one reaction. You can change it until time runs out.</p></div><div className="progress-ring" style={{ "--progress": `${currentSubmissions.length ? myRatings.length / currentSubmissions.length * 360 : 0}deg` } as React.CSSProperties}><strong>{myRatings.length}/{currentSubmissions.length}</strong><small>rated</small></div></div>
+              <div className="section-title"><div><span className="eyebrow">The gems are unlocked</span><h2>Listen with intention.</h2><p>Rate every song with exactly one reaction. You can change it until time runs out.</p></div><ProgressRing value={myRatings.length} total={currentSubmissions.length} label="rated" /></div>
               <div className="rating-legend">{ratingOptions.map((item) => <span key={item.emoji}><b>{item.emoji}</b>{item.points} pt · {item.label}</span>)}</div>
               <div className="song-grid">{currentSubmissions.map((submission) => <SongCard key={submission.id} submission={submission} rating={myRatings.find((rating) => rating.submission_id === submission.id)?.emoji} onRate={(emoji) => rate(submission.id, emoji)} disabled={false} />)}</div>
+              {isAdmin && approved.length > 0 && currentSubmissions.length > 0 && currentRatings.length === approved.length * currentSubmissions.length && <div className="phase-complete-action"><div><Check size={18} /><span><strong>Every reaction is in.</strong><small>You can reveal the results now instead of waiting for the countdown.</small></span></div><button className="primary-button compact" onClick={endCurrentPhase}>End rating interval</button></div>}
             </section>
           )}
 
