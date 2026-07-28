@@ -1,0 +1,67 @@
+# Gems decision log
+
+Record decisions that future chats should not accidentally reverse. New entries
+go at the top. If a decision changes, add a new entry and mark the old one
+superseded rather than rewriting history.
+
+## 2026-07-28 — Repository files are the cross-chat source of truth
+
+**Status:** Accepted
+
+Future chats must rely on `AGENTS.md`, `APP_RULES.md`, the documents in `docs/`,
+the current working tree, migrations, and Git history. Chat memory is helpful
+but is not authoritative. Product, architecture, roadmap, and decision files are
+updated in the same commit as material behavior changes.
+
+## 2026-07-26 — Vercel is the primary public host
+
+**Status:** Accepted
+
+The production application is hosted at `https://gems-rosy.vercel.app` so it is
+independent of an OpenAI account session. Supabase remains the backend. Hosting
+must stay on free tiers until the user explicitly approves otherwise.
+
+Because the Vercel account is not connected to the GitHub identity, verified
+prebuilt deployments staged without Git metadata are the current reliable
+deployment method.
+
+## 2026-07-26 — Time Machine is an admin production capability
+
+**Status:** Accepted; supersedes the original development-only rule
+
+Circle admins may use Time Machine in production because it is valuable for
+testing and operating the round lifecycle. It must remain admin-only, preserve
+round duration constraints, and request confirmation before changing shared
+deadlines. Dummy-data creation remains development-only.
+
+## 2026-07-26 — Notifications are cost-safe and opt-in
+
+**Status:** Accepted
+
+Email notifications default to off, require a circle master switch, and send
+nothing when Resend is not configured. Browser push requires user/device
+permission and a circle-level switch. Notification events are idempotent.
+
+## 2026-07-26 — Supabase RLS is the primary authorization boundary
+
+**Status:** Accepted
+
+Circle privacy and roles are enforced in PostgreSQL policies, constraints,
+triggers, and narrowly scoped functions. UI visibility alone is never accepted
+as authorization. Service-role credentials are restricted to protected server
+routes.
+
+## 2026-07-26 — Rounds use UTC timestamps and countdowns
+
+**Status:** Accepted
+
+The database stores UTC timestamps. A round contains five submission days and
+seven rating days. The frontend displays relative countdowns instead of asking
+members to interpret a shared timezone.
+
+## 2026-07-26 — Names are immutable
+
+**Status:** Accepted
+
+Nicknames and circle names are globally unique and immutable. This favors stable
+identity and history over rename flexibility.

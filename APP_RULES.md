@@ -1,64 +1,130 @@
-# GEMS - APP_RULES.md (God Prompt & Context)
+# Gems product rules
 
-## 1. App Concept
-"Gems" is a modern, responsive web application where friends and family share unique musical discoveries. The core visual theme is "gems"—representing songs that enrich users' playlists. 
+This file is the canonical product specification for Gems. It describes
+user-visible behavior and invariants. Technical implementation details belong in
+`docs/ARCHITECTURE.md`.
 
-## 2. Tech Stack
-- **Framework:** Next.js (App Router) + React
-- **Database & Auth:** Supabase (PostgreSQL, Email/Password Auth, Row Level Security)
-- **Styling:** Tailwind CSS + Shadcn UI + Lucide Icons
-- **Emails:** Resend API
-- **i18n:** next-intl (setup for English default, scalable later)
+## 1. Product concept
 
-## 3. Core Entities & Rules
+Gems is a private, responsive music-discovery ritual for small circles of
+friends and family. Each round lets members privately submit a musical find,
+listen together, react, and preserve the results as a shared history.
 
-### A. Users
-- Authentication is strictly email-based (includes password reset).
-- Users choose a unique, immutable "nickname" upon registration.
-- No access to the main dashboard until fully authenticated.
+The visual language uses gems to represent songs worth keeping.
 
-### B. Groups
-- **Size:** Minimum 2 members, Maximum 8 members.
-- **Names:** Must be globally unique and immutable.
-- **Creation:** Creator sets the name, optional rules, and becomes the Admin.
-- **Joining:** Users enter the exact group name and remain in a "pending" state until Admin approval.
-- **Empty States:** Whenever a group is new or waiting for input, display a beautiful, engaging "Empty State" UI (e.g., "Waiting for the first gems... invite your friends!") rather than a blank screen.
+## 2. Accounts and profiles
 
-## 4. The Sharing Cycle (12 Days Total)
+- Authentication uses Supabase email and password.
+- Users must confirm their email before signing in when confirmation is enabled.
+- Password reset and authenticated password changes are supported.
+- Every user chooses a globally unique nickname of 2–32 characters.
+- Nicknames are immutable.
+- The profile view shows aggregate activity and reactions received across all
+  accessible circles.
+- Authenticated users can search for other users by nickname.
+- Users cannot access the main dashboard without a valid session and profile.
 
-**CRITICAL TIMEZONE RULE:** All dates and timestamps in the Supabase database MUST be stored in strict UTC. The frontend MUST calculate time remaining and display it strictly as a countdown (e.g., "14 hours left to submit") to completely avoid user timezone confusion.
+## 3. Circles
 
-### Phase 1: Submission Phase (Days 1-5)
-- Users submit one song by pasting a URL.
-- **Robust Parsing:** The system must use robust Regex to parse all variations of Spotify links (tracks, albums) and YouTube links (youtu.be, watch?v=, shorts). 
-- **Display:** Render valid links via standard HTML `<iframe>` for in-app playback.
-- **Edit Capability:** Users can edit or swap their submitted link at any point during these 5 days.
-- **Visibility:** Show a progress tracker (e.g., "4/8 members submitted"), but DO NOT reveal song titles, artists, or submitters.
+- A circle has a globally unique, immutable name.
+- The creator becomes its first approved admin.
+- Circle size is limited to 8 members.
+- At least 2 approved members are required to start a round.
+- Users may request membership by exact circle name or a private invitation
+  link. An admin must approve the request before circle data becomes accessible.
+- Invitation links expire after 14 days.
+- Admins can approve or reject requests, remove members, edit circle rules,
+  configure notifications and automation, create invitations, and archive a
+  circle.
+- Members may leave a circle. The sole admin cannot leave without preserving a
+  valid administrative owner.
+- Archived circles disappear from the active circle list, while their database
+  history is retained.
+- Empty states must explain the next useful action rather than showing a blank
+  screen.
 
-### Phase 2: Rating Phase (Days 6-12)
-- Submissions lock. The "Edit" button disappears. All songs are revealed.
-- Every member must listen to all songs and rate them using EXACTLY ONE of these five emojis:
-  - 🖤 Black heart (3 pts): "I don't know this song but I love it"
-  - ❤️ Red heart (2 pts): "I know this song and I love it"
-  - 👍 Thumbs up (1 pt): "Good song, I will add it to my playlist"
-  - 👌 OK hand (0 pts): "Decent song, but not quite my taste"
-  - 🤔 Thinking (0 pts): "Interesting choice, but doesn't appeal to my ears"
-- Show real-time visual progress of ratings (e.g., "UserX has rated 3/8 songs").
+## 4. The 12-day sharing cycle
 
-### Phase 3: Reveal & Restart
-- After Day 12, calculate points for each song.
-- Publish the leaderboard and emojis to a persistent "Chat/History" log in the group.
-- Automatically start a new 12-day cycle.
+All persisted timestamps are UTC. The interface describes remaining time as a
+countdown so members do not have to interpret a shared timezone.
 
-## 5. Engagement & Streaks
-- **The Streak System:** Track how many consecutive rounds a user has successfully submitted and rated a song. Display a 🔥 icon with their streak number next to their nickname.
-- **Penalty:** Failing to submit or rate by the respective deadlines resets their streak to 0.
-- **Notifications (via Resend):**
-  - "Round Started! Submit your gem."
-  - "Time to Rate! New gems are unlocked."
-  - "Streak Danger! Only 12 hours left to rate or you lose your streak."
+### Phase 1: Submit — days 1–5
 
-## 6. Developer Tools (Only visible in Dev Environment)
-To allow for rapid testing without waiting 12 days, the AI must implement the following developer utilities:
-1. **The Time Machine:** A hidden admin button that fast-forwards the group's internal clock by 1 day, 5 days, or 12 days to test cycle transitions.
-2. **Dummy Data Script:** A script that can be triggered to instantly populate a group with 3 fake users, mock valid Spotify/YouTube submissions, and randomized emoji ratings to test the UI layout.
+- Each approved member may submit one Spotify track/album or YouTube
+  video/Short link.
+- Supported URL variants include Spotify open links, `youtu.be`, YouTube
+  `watch?v=`, Shorts, and embed URLs.
+- Valid media is playable with an embedded player when the provider permits it.
+- Every revealed song also has a direct link to the original provider.
+- A member may replace their own submission until the submission deadline.
+- Other members can see submission progress, but titles, artists, URLs, and
+  submitter identities remain hidden until rating begins.
+
+### Phase 2: Rate — days 6–12
+
+- Submissions are locked.
+- Songs and submitters are revealed.
+- Every member may give exactly one reaction to each submission and may change
+  it until the rating deadline.
+- Reactions and points are:
+
+| Reaction | Points | Meaning |
+| --- | ---: | --- |
+| 🖤 | 3 | I did not know this song, and I love it. |
+| ❤️ | 2 | I knew this song, and I love it. |
+| 👍 | 1 | Good song; I would add it to my playlist. |
+| 👌 | 0 | Decent song, but not quite my taste. |
+| 🤔 | 0 | Interesting choice, but it does not appeal to me. |
+
+- Rating progress is visible without publishing the final ranking early.
+
+### Phase 3: Reveal and history — after day 12
+
+- Scores are the sum of reaction points.
+- The completed round shows a leaderboard, reactions, submitters, and links.
+- Completed rounds remain accessible in History.
+- An admin may start the next round manually.
+- Automatic round starts happen only when the circle enables automation and an
+  external scheduler calls the protected cron endpoint.
+
+## 5. Streaks
+
+- A streak counts consecutive completed rounds in which a user both submitted a
+  gem and rated every required submission.
+- Streak finalization occurs when the next round is created.
+- Missing the submission or rating requirement resets the streak to zero.
+- The interface displays a flame and the current streak beside the nickname.
+
+## 6. Notifications and cost controls
+
+- Browser push is opt-in for each user/device and can be disabled at the circle
+  level.
+- Email delivery has a circle-level master switch that defaults to off.
+- Round-started, rating-started, and 12-hour streak-warning notifications have
+  individual switches.
+- Notification delivery is idempotent; the same event must not be sent twice to
+  the same recipient for one round.
+- When Resend is not configured, email work is a dry run and no email is sent.
+- The admin view shows reference free-tier limits. These are guidance, not live
+  billing meters, and must be periodically reverified with providers.
+
+## 7. Administrative and developer tools
+
+- Time Machine is visible only to a circle admin.
+- Time Machine can move the current round forward by 1, 5, or 12 days in local
+  and production environments.
+- Time Machine must ask for confirmation because it changes deadlines for every
+  member of the circle.
+- Dummy data is development-only. It creates fake users, submissions, and
+  ratings for local layout and lifecycle testing.
+- The production seed endpoint must reject every request.
+
+## 8. Product boundaries
+
+- Circles are private; discovery does not expose circle membership or content.
+- User search exposes only limited public profile information needed to find a
+  listener.
+- Gems uses public provider embeds and oEmbed metadata by default. It does not
+  require paid Spotify or YouTube API access for the core flow.
+- The product should remain usable on free service tiers during development and
+  early personal use.

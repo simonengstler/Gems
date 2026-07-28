@@ -4,6 +4,20 @@ Gems is a private, 12-day music discovery ritual for groups of 2–8 people.
 Members submit one Spotify or YouTube link, listen and react during the rating
 phase, then keep the leaderboard and reactions in a permanent round archive.
 
+Production: [https://gems-rosy.vercel.app](https://gems-rosy.vercel.app)
+
+## Project documentation
+
+- [`APP_RULES.md`](APP_RULES.md) — canonical product behavior and invariants.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system, data, security, and
+  deployment boundaries.
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — shipped capabilities and prioritized
+  gaps.
+- [`docs/DECISIONS.md`](docs/DECISIONS.md) — consequential product and technical
+  decisions.
+- [`AGENTS.md`](AGENTS.md) — durable working instructions for Codex and other
+  coding agents.
+
 ## Local development
 
 Requirements: Node.js 20.9+, Docker Desktop, and npm.
@@ -52,3 +66,7 @@ Call `GET /api/cron/rounds` on a regular schedule. In production, provide
 npm run lint
 npm run build
 ```
+
+There is not yet a dedicated automated test suite. Until one is added, lint,
+the production build, migration review, and focused live verification are the
+minimum release checks.
