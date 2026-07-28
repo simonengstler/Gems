@@ -67,6 +67,7 @@ Core tables:
 Supporting tables:
 
 - `group_settings`: email, push, and automatic-round switches.
+- `platform_admins`: explicit allowlist for developer/operator UI.
 - `group_invitations`: expiring private invitation tokens.
 - `notification_log`: idempotency record for delivered notifications.
 - `push_subscriptions`: per-user browser push endpoints and keys.
@@ -96,22 +97,32 @@ Frontend visibility is a usability layer, not an authorization layer. Every
 privileged action must also be enforced by RLS, a database function, or an
 authenticated server route.
 
+Platform operators are provisioned explicitly by an existing database operator,
+for example in the Supabase SQL editor:
+
+```sql
+insert into public.platform_admins (user_id)
+select id from auth.users where email = 'operator@example.com';
+```
+
+There is deliberately no browser flow for granting this role.
+
 ## Round lifecycle
 
 Round timestamps are stored in UTC:
 
 1. `starts_at` begins submission.
-2. `submission_ends_at = starts_at + 5 days`.
-3. `rating_ends_at = submission_ends_at + 7 days`.
+2. `submission_ends_at` uses the circle’s configured 1–14 day choosing interval.
+3. `rating_ends_at` uses the configured 1–14 day rating interval.
 4. Reveal is derived when the rating deadline has passed.
 
 The browser derives the phase from these timestamps. Starting a new round
 finalizes the previous round's streaks. Automatic starts are not continuously
 running inside Next.js; they require calls to `/api/cron/rounds`.
 
-Time Machine preserves the 5-day/7-day relationship by shifting all three
-timestamps backward together. It is an admin-only production capability and
-requires user confirmation.
+Time Machine preserves the round’s configured relationship by shifting all
+three timestamps backward together. It is an admin-only production capability
+and requires user confirmation.
 
 ## Notifications
 
@@ -183,5 +194,6 @@ Do not document or commit secret values.
 - No automated unit, integration, or end-to-end test suite.
 - No checked-in production cron schedule.
 - Resend is intentionally unconfigured, so email notifications do not send.
-- Free-tier limits in the admin view are reference text, not live usage meters.
+- Free-tier limits in the platform-operator view are reference text, not live
+  usage meters.
 - Most product UI remains concentrated in one large client component.

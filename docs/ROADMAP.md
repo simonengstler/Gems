@@ -13,13 +13,16 @@ its status changes; do not duplicate the same item in multiple sections.
   archiving.
 - Expiring private invitation links.
 - Multiple-circle switching.
-- Twelve-day submit, rate, reveal, and persistent history flow.
+- Configurable submit/rate intervals, reveal, and persistent history flow.
 - Spotify and YouTube parsing, embedded playback, metadata, and original links.
 - Five reactions with generated point values and per-user rating updates.
 - Streak calculation when a subsequent round starts.
-- Profile totals, reactions received, and nickname search.
+- Profile totals, reactions received, nickname search, and full listener
+  profile drill-down within existing access.
 - Circle admin view with rules, lifecycle, invitations, notification controls,
-  member management, and free-tier reference limits.
+  interval settings, and member management.
+- Separate allowlisted platform-operator view for service-limit references.
+- One-glance product home page linked from the Gems brand.
 - Browser push subscription and idempotent notification delivery logic.
 - Cost-safe email controls and dry-run behavior when Resend is absent.
 - Admin-only production Time Machine with confirmation.

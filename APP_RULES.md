@@ -43,12 +43,16 @@ The visual language uses gems to represent songs worth keeping.
 - Empty states must explain the next useful action rather than showing a blank
   screen.
 
-## 4. The 12-day sharing cycle
+## 4. The sharing cycle
 
 All persisted timestamps are UTC. The interface describes remaining time as a
 countdown so members do not have to interpret a shared timezone.
 
-### Phase 1: Submit — days 1–5
+Circle admins choose the duration of the submission and rating intervals for
+future rounds. Each interval may be 1–14 days. Changing the setting does not
+alter a round already in progress.
+
+### Phase 1: Submit
 
 - Each approved member may submit one Spotify track/album or YouTube
   video/Short link.
@@ -60,7 +64,7 @@ countdown so members do not have to interpret a shared timezone.
 - Other members can see submission progress, but titles, artists, URLs, and
   submitter identities remain hidden until rating begins.
 
-### Phase 2: Rate — days 6–12
+### Phase 2: Rate
 
 - Submissions are locked.
 - Songs and submitters are revealed.
@@ -78,7 +82,7 @@ countdown so members do not have to interpret a shared timezone.
 
 - Rating progress is visible without publishing the final ranking early.
 
-### Phase 3: Reveal and history — after day 12
+### Phase 3: Reveal and history
 
 - Scores are the sum of reaction points.
 - The completed round shows a leaderboard, reactions, submitters, and links.
@@ -105,8 +109,9 @@ countdown so members do not have to interpret a shared timezone.
 - Notification delivery is idempotent; the same event must not be sent twice to
   the same recipient for one round.
 - When Resend is not configured, email work is a dry run and no email is sent.
-- The admin view shows reference free-tier limits. These are guidance, not live
-  billing meters, and must be periodically reverified with providers.
+- A platform-operator view shows reference free-tier limits. It is not visible
+  to ordinary users or circle admins. These are guidance, not live billing
+  meters, and must be periodically reverified with providers.
 
 ## 7. Administrative and developer tools
 
@@ -118,12 +123,15 @@ countdown so members do not have to interpret a shared timezone.
 - Dummy data is development-only. It creates fake users, submissions, and
   ratings for local layout and lifecycle testing.
 - The production seed endpoint must reject every request.
+- Platform administration is a separate allowlist-backed role. It is not
+  implied by being a circle admin.
 
 ## 8. Product boundaries
 
 - Circles are private; discovery does not expose circle membership or content.
-- User search exposes only limited public profile information needed to find a
-  listener.
+- User search exposes a listener profile, including streak and aggregate
+  activity visible through the requester’s existing circle access. It never
+  exposes private circle membership or content.
 - Gems uses public provider embeds and oEmbed metadata by default. It does not
   require paid Spotify or YouTube API access for the core flow.
 - The product should remain usable on free service tiers during development and

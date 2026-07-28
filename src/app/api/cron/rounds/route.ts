@@ -44,8 +44,8 @@ export async function GET(request: NextRequest) {
         group_id: group.id,
         round_number: round.round_number + 1,
         starts_at: starts.toISOString(),
-        submission_ends_at: new Date(starts.getTime() + 5 * 86400000).toISOString(),
-        rating_ends_at: new Date(starts.getTime() + 12 * 86400000).toISOString(),
+        submission_ends_at: new Date(starts.getTime() + setting.submission_interval_days * 86400000).toISOString(),
+        rating_ends_at: new Date(starts.getTime() + (setting.submission_interval_days + setting.rating_interval_days) * 86400000).toISOString(),
       });
       if (!startError) roundsStarted++;
     }
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     const submissionEnds = new Date(round.submission_ends_at).getTime();
     const ratingEnds = new Date(round.rating_ends_at).getTime();
     const candidates: { type: string; enabled: boolean; subject: string; body: string; active: boolean }[] = [
-      { type: "round_started", enabled: setting.round_started_email, subject: `${group.name}: a new Gems round started`, body: "Submit one musical gem before the first five days are over.", active: now >= startsAt && now - startsAt < 3600000 },
+      { type: "round_started", enabled: setting.round_started_email, subject: `${group.name}: a new Gems round started`, body: "Submit one musical gem before the choosing interval closes.", active: now >= startsAt && now - startsAt < 3600000 },
       { type: "rating_started", enabled: setting.rating_started_email, subject: `${group.name}: the gems are unlocked`, body: "Listen to every song and leave exactly one reaction.", active: now >= submissionEnds && now - submissionEnds < 3600000 },
       { type: "streak_warning", enabled: setting.streak_warning_email, subject: `${group.name}: your streak is in danger`, body: "Only 12 hours remain to finish your ratings.", active: ratingEnds - now > 11 * 3600000 && ratingEnds - now <= 12 * 3600000 },
     ];

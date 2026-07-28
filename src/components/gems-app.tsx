@@ -8,6 +8,7 @@ import {
   Flame,
   Gem,
   History,
+  House,
   LoaderCircle,
   LogOut,
   Music2,
@@ -119,12 +120,15 @@ function provider(url: string) {
   return null;
 }
 
-function Logo() {
+function Logo({ onClick }: { onClick?: () => void }) {
+  const content = <>
+    <span className="brand-mark"><Gem size={20} strokeWidth={2.4} /></span>
+    <span>Gems</span>
+  </>;
   return (
-    <div className="brand">
-      <span className="brand-mark"><Gem size={20} strokeWidth={2.4} /></span>
-      <span>Gems</span>
-    </div>
+    onClick
+      ? <button className="brand brand-button" onClick={onClick} aria-label="Open Gems home">{content}</button>
+      : <div className="brand">{content}</div>
   );
 }
 
@@ -158,15 +162,13 @@ function AuthScreen() {
         if (error) throw error;
         setMessage("Password reset link sent. Check your inbox.");
       } else if (mode === "signup") {
-        const { data: result, error } = await supabase.auth.signUp({ email, password });
+        const { data: result, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { nickname } },
+        });
         if (error) throw error;
         if (!result.user) throw new Error("Account could not be created.");
-        if (result.session) {
-          const { error: profileError } = await supabase
-            .from("users")
-            .insert({ id: result.user.id, nickname });
-          if (profileError) throw profileError;
-        }
         setMessage(result.session ? "Welcome to Gems." : "Check your email to confirm your account, then sign in.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -186,12 +188,12 @@ function AuthScreen() {
         <div className="story-copy">
           <span className="eyebrow"><Sparkles size={14} /> Your best finds, together</span>
           <h1>Trade songs.<br />Find <em>gems.</em></h1>
-          <p>A private listening ritual for the people whose taste you trust. One song each. Twelve days. No algorithms.</p>
+          <p>A private listening ritual for the people whose taste you trust. One song each. A shared rhythm. No algorithms.</p>
         </div>
         <div className="cycle-preview">
-          <div><span>01</span><strong>Share</strong><small>Days 1–5</small></div>
+          <div><span>01</span><strong>Share</strong><small>Choose privately</small></div>
           <i />
-          <div><span>02</span><strong>Listen</strong><small>Days 6–12</small></div>
+          <div><span>02</span><strong>Listen</strong><small>React together</small></div>
           <i />
           <div><span>03</span><strong>Reveal</strong><small>Forever saved</small></div>
         </div>
@@ -291,6 +293,7 @@ function GroupSetup({ onDone }: { onDone: () => void }) {
 }
 
 function UserPanel({ profile, close }: { profile: Profile; close: () => void }) {
+  const [viewedProfile, setViewedProfile] = useState(profile);
   const [stats, setStats] = useState<Record<Emoji, number>>({ "🖤": 0, "❤️": 0, "👍": 0, "👌": 0, "🤔": 0 });
   const [summary, setSummary] = useState({ gems: 0, ratings: 0, points: 0, bestScore: 0 });
   const [message, setMessage] = useState("");
@@ -299,11 +302,14 @@ function UserPanel({ profile, close }: { profile: Profile; close: () => void }) 
 
   useEffect(() => {
     async function loadStats() {
-      const { data: songs } = await supabase.from("submissions").select("id").eq("user_id", profile.id);
+      setStats({ "🖤": 0, "❤️": 0, "👍": 0, "👌": 0, "🤔": 0 });
+      setSummary({ gems: 0, ratings: 0, points: 0, bestScore: 0 });
+      const { data: songs } = await supabase.from("submissions").select("id").eq("user_id", viewedProfile.id);
       const ids = (songs || []).map((song) => song.id);
-      if (!ids.length) return;
-      const { data } = await supabase.from("ratings").select("emoji,points,submission_id").in("submission_id", ids);
-      const { count: ratingsGiven } = await supabase.from("ratings").select("id", { count: "exact", head: true }).eq("user_id", profile.id);
+      const { data } = ids.length
+        ? await supabase.from("ratings").select("emoji,points,submission_id").in("submission_id", ids)
+        : { data: [] };
+      const { count: ratingsGiven } = await supabase.from("ratings").select("id", { count: "exact", head: true }).eq("user_id", viewedProfile.id);
       const next: Record<Emoji, number> = { "🖤": 0, "❤️": 0, "👍": 0, "👌": 0, "🤔": 0 };
       for (const rating of data || []) next[rating.emoji as Emoji] += 1;
       setStats(next);
@@ -317,7 +323,7 @@ function UserPanel({ profile, close }: { profile: Profile; close: () => void }) 
       });
     }
     void loadStats();
-  }, [profile.id]);
+  }, [viewedProfile.id]);
 
   async function changePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -358,26 +364,26 @@ function UserPanel({ profile, close }: { profile: Profile; close: () => void }) 
     <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && close()}>
       <section className="profile-modal">
         <button className="modal-close" onClick={close} aria-label="Close"><X size={18} /></button>
-        <div className="profile-head"><span className="large-avatar">{profile.nickname.slice(0, 1).toUpperCase()}</span><div><span className="eyebrow">Your profile</span><h2>{profile.nickname}</h2><p><Flame size={15} /> {profile.streak} round streak</p></div></div>
+        <div className="profile-head"><span className="large-avatar">{viewedProfile.nickname.slice(0, 1).toUpperCase()}</span><div><span className="eyebrow">{viewedProfile.id === profile.id ? "Your profile" : "Listener profile"}</span><h2>{viewedProfile.nickname}</h2><p><Flame size={15} /> {viewedProfile.streak} round streak</p></div></div>
         <div className="profile-grid">
           <article>
             <span className="eyebrow">Reactions received</span>
-            <h3>Your gems, by feeling</h3>
+            <h3>{viewedProfile.id === profile.id ? "Your gems, by feeling" : "Their gems, by feeling"}</h3>
             <div className="reaction-stats">{ratingOptions.map((item) => <div key={item.emoji}><span>{item.emoji}</span><strong>{stats[item.emoji]}</strong><small>{item.label}</small></div>)}</div>
           </article>
-          <article>
+          {viewedProfile.id === profile.id && <article>
             <span className="eyebrow">Security</span>
             <h3>Change password</h3>
             <form onSubmit={changePassword} className="form-stack"><label>New password<input name="password" type="password" minLength={8} required placeholder="At least 8 characters" /></label><button className="primary-button">Update password</button></form>
             <button className="push-button" onClick={enablePush}>Enable browser notifications</button>
-          </article>
+          </article>}
         </div>
         <div className="profile-summary"><div><strong>{summary.gems}</strong><small>gems shared</small></div><div><strong>{summary.ratings}</strong><small>ratings given</small></div><div><strong>{summary.points}</strong><small>points earned</small></div><div><strong>{summary.bestScore}</strong><small>best gem score</small></div></div>
         <article className="people-search">
           <span className="eyebrow">Community</span>
           <h3>Find a listener</h3>
           <form onSubmit={search}><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by nickname" /><button>Search</button></form>
-          {results.length > 0 && <div className="search-results">{results.map((user) => <div key={user.id}><span className="avatar">{user.nickname.slice(0, 1).toUpperCase()}</span><strong>{user.nickname}</strong><small><Flame size={12} /> {user.streak} streak</small></div>)}</div>}
+          {results.length > 0 && <div className="search-results">{results.map((user) => <button type="button" key={user.id} onClick={() => setViewedProfile(user)}><span className="avatar">{user.nickname.slice(0, 1).toUpperCase()}</span><strong>{user.nickname}</strong><small><Flame size={12} /> {user.streak} streak</small><span>View profile</span></button>)}</div>}
         </article>
         {message && <p className="form-message">{message}</p>}
       </section>
@@ -396,6 +402,8 @@ function AdminPanel({ group, members, rounds, submissions, close, refresh, notif
     streak_warning_email: true,
     auto_start_rounds: false,
     push_notifications_enabled: true,
+    submission_interval_days: 5,
+    rating_interval_days: 7,
   });
   const [inviteUrl, setInviteUrl] = useState("");
   const [rules, setRules] = useState(group.rules || "");
@@ -405,11 +413,18 @@ function AdminPanel({ group, members, rounds, submissions, close, refresh, notif
       .then(({ data }) => { if (data) setSettings(data); });
   }, [group.id]);
 
-  async function toggle(key: keyof typeof settings) {
+  async function toggle(key: "email_notifications_enabled" | "round_started_email" | "rating_started_email" | "streak_warning_email" | "auto_start_rounds" | "push_notifications_enabled") {
     const next = { ...settings, [key]: !settings[key] };
     setSettings(next);
     const { error } = await supabase.from("group_settings").update({ [key]: next[key] }).eq("group_id", group.id);
     if (error) notify(error.message);
+  }
+
+  async function updateInterval(key: "submission_interval_days" | "rating_interval_days", value: number) {
+    const nextValue = Math.max(1, Math.min(14, value));
+    setSettings((current) => ({ ...current, [key]: nextValue }));
+    const { error } = await supabase.from("group_settings").update({ [key]: nextValue }).eq("group_id", group.id);
+    notify(error ? error.message : "Round intervals updated for future rounds.");
   }
 
   async function createInvite() {
@@ -443,15 +458,6 @@ function AdminPanel({ group, members, rounds, submissions, close, refresh, notif
     if (error) notify(error.message); else { notify("Circle archived."); close(); location.reload(); }
   }
 
-  const limits = [
-    ["Supabase", "500 MB database", "50k MAU · 5 GB egress · 1 GB files · 2 projects", "https://supabase.com/pricing"],
-    ["Supabase Realtime", "2M messages/month", "200 peak connections · 500k Edge calls", "https://supabase.com/pricing"],
-    ["Resend", "3,000 emails/month", "100/day · 5 requests/sec · master switch is off", "https://resend.com/pricing"],
-    ["YouTube Data API", "10,000 units/day", "100 searches/day · Gems uses no-key oEmbed by default", "https://developers.google.com/youtube/v3/determine_quota_cost"],
-    ["Spotify", "Variable 30-second quota", "Development mode: Premium owner + 5 allowlisted users", "https://developer.spotify.com/documentation/web-api/concepts/quota-modes"],
-    ["Vercel Hobby", "Not connected", "Confirm current limits before production deployment", "https://vercel.com/pricing"],
-  ];
-
   return (
     <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && close()}>
       <section className="profile-modal admin-modal">
@@ -477,6 +483,12 @@ function AdminPanel({ group, members, rounds, submissions, close, refresh, notif
             <button className="primary-button" onClick={createInvite}><Copy size={15} /> Copy invitation</button>
             {inviteUrl && <input className="invite-output" value={inviteUrl} readOnly />}
             <div className="usage-summary"><div><strong>{members.length}</strong><small>members</small></div><div><strong>{rounds.length}</strong><small>rounds</small></div><div><strong>{submissions.length}</strong><small>gems</small></div></div>
+            <div className="interval-settings">
+              <span className="eyebrow">Future rounds</span><h3>Listening rhythm</h3>
+              <p className="admin-copy">Choose how long each interval lasts. Current-round deadlines stay unchanged.</p>
+              <label>Choosing interval<input type="number" min={1} max={14} value={settings.submission_interval_days} onChange={(event) => updateInterval("submission_interval_days", Number(event.target.value))} /><small>days</small></label>
+              <label>Rating interval<input type="number" min={1} max={14} value={settings.rating_interval_days} onChange={(event) => updateInterval("rating_interval_days", Number(event.target.value))} /><small>days</small></label>
+            </div>
           </article>
         </div>
         <article className="member-admin">
@@ -488,13 +500,48 @@ function AdminPanel({ group, members, rounds, submissions, close, refresh, notif
           <textarea value={rules} onChange={(event) => setRules(event.target.value)} maxLength={5000} placeholder="Write the house rules…" />
           <div className="admin-actions"><button className="primary-button" onClick={saveRules}>Save rules</button><button className="archive-button" onClick={archiveGroup}>Archive circle</button></div>
         </article>
+      </section>
+    </div>
+  );
+}
+
+function PlatformAdminPanel({ close }: { close: () => void }) {
+  const limits = [
+    ["Supabase", "500 MB database", "50k MAU · 5 GB egress · 1 GB files · 2 projects", "https://supabase.com/pricing"],
+    ["Supabase Realtime", "2M messages/month", "200 peak connections · 500k Edge calls", "https://supabase.com/pricing"],
+    ["Resend", "3,000 emails/month", "100/day · master switch is off", "https://resend.com/pricing"],
+    ["YouTube", "No API key in core flow", "Public embeds and oEmbed metadata", "https://developers.google.com/youtube/v3"],
+    ["Spotify", "No paid API in core flow", "Public embeds and oEmbed metadata", "https://developer.spotify.com/documentation/web-api/concepts/quota-modes"],
+    ["Vercel Hobby", "Production host", "Recheck current limits before scaling", "https://vercel.com/pricing"],
+  ];
+  return (
+    <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && close()}>
+      <section className="profile-modal admin-modal">
+        <button className="modal-close" onClick={close} aria-label="Close"><X size={18} /></button>
+        <div className="profile-head"><span className="large-avatar"><Settings2 /></span><div><span className="eyebrow">Platform operations</span><h2>Developer console</h2><p>Visible only to platform administrators</p></div></div>
         <article className="limits-card">
-          <span className="eyebrow">Free-tier guardrails · verified July 2026</span><h3>Service limits</h3>
+          <span className="eyebrow">Free-tier guardrails · reviewed July 2026</span><h3>Service limits</h3>
           <div className="limits-grid">{limits.map(([service, value, note, href]) => <a key={service} href={href} target="_blank" rel="noreferrer"><strong>{service}</strong><b>{value}</b><small>{note}</small><ChevronRight size={14} /></a>)}</div>
-          <p>Reference values—not live billing meters. Follow a card to confirm the provider’s latest terms.</p>
+          <p>Reference values—not live billing meters. Follow a card to confirm the provider’s current terms.</p>
         </article>
       </section>
     </div>
+  );
+}
+
+function HomePage({ start }: { start: () => void }) {
+  return (
+    <section className="home-page">
+      <span className="eyebrow"><Sparkles size={14} /> Music discovery with people, not feeds</span>
+      <h1>Turn the songs you love into a shared ritual.</h1>
+      <p>Gems gives a small, private circle room to choose intentionally, listen closely, and build a lasting soundtrack together—without rankings appearing before everyone has had their say.</p>
+      <div className="home-principles">
+        <article><span>01</span><h2>Choose privately</h2><p>Each person brings one musical find. The surprise stays sealed until the listening interval begins.</p></article>
+        <article><span>02</span><h2>Listen together</h2><p>Open every gem, react with a shared language, and give each choice genuine attention.</p></article>
+        <article><span>03</span><h2>Keep what matters</h2><p>Reveal the circle’s favorites and preserve every round as a collective musical memory.</p></article>
+      </div>
+      <button className="primary-button compact" onClick={start}><Gem size={16} /> Go to the current round</button>
+    </section>
   );
 }
 
@@ -504,7 +551,7 @@ function EmptyRound({ isAdmin, members, start }: { isAdmin: boolean; members: Me
       <div className="empty-gem"><Gem size={38} /></div>
       <span className="eyebrow">A fresh circle</span>
       <h2>Waiting for the first gems…</h2>
-      <p>{members.length < 2 ? "Invite at least one friend, then your first 12-day listening ritual can begin." : "Your circle is ready. Start the first round when everyone is listening."}</p>
+      <p>{members.length < 2 ? "Invite at least one friend, then your first listening ritual can begin." : "Your circle is ready. Start the first round when everyone is listening."}</p>
       <div className="member-bubbles">{members.map((member) => <span key={member.id} title={member.users?.nickname}>{member.users?.nickname?.slice(0, 1).toUpperCase()}</span>)}</div>
       {isAdmin && <button className="primary-button compact" disabled={members.length < 2} onClick={start}><Sparkles size={17} /> Start round</button>}
       {!isAdmin && <small>The group admin will start the round.</small>}
@@ -545,6 +592,7 @@ function Dashboard({ session }: { session: Session }) {
   const [rounds, setRounds] = useState<Round[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [ratings, setRatings] = useState<Rating[]>([]);
+  const [intervals, setIntervals] = useState({ submission: 5, rating: 7 });
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState("");
   const [songUrl, setSongUrl] = useState("");
@@ -552,7 +600,9 @@ function Dashboard({ session }: { session: Session }) {
   const [showGroupSetup, setShowGroupSetup] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
-  const [view, setView] = useState<"round" | "history">("round");
+  const [showPlatformAdmin, setShowPlatformAdmin] = useState(false);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [view, setView] = useState<"home" | "round" | "history">("round");
   const [expandedRound, setExpandedRound] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
 
@@ -573,10 +623,12 @@ function Dashboard({ session }: { session: Session }) {
 
   const loadGroup = useCallback(async () => {
     if (!selectedId) return;
-    const [{ data: memberData }, { data: roundData }] = await Promise.all([
+    const [{ data: memberData }, { data: roundData }, { data: settingData }] = await Promise.all([
       supabase.from("group_members").select("*,users!group_members_user_id_fkey(id,nickname,streak)").eq("group_id", selectedId).order("created_at"),
       supabase.from("rounds").select("*").eq("group_id", selectedId).order("round_number", { ascending: false }),
+      supabase.from("group_settings").select("submission_interval_days,rating_interval_days").eq("group_id", selectedId).maybeSingle(),
     ]);
+    if (settingData) setIntervals({ submission: settingData.submission_interval_days, rating: settingData.rating_interval_days });
     setMembers((memberData || []) as Member[]);
     setRounds((roundData || []) as Round[]);
     const roundIds = (roundData || []).map((round) => round.id);
@@ -605,6 +657,10 @@ function Dashboard({ session }: { session: Session }) {
   // Initial database synchronization is intentionally effect-driven.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadGroups(); }, [loadGroups]);
+  useEffect(() => {
+    supabase.from("platform_admins").select("user_id").eq("user_id", session.user.id).maybeSingle()
+      .then(({ data }) => setIsPlatformAdmin(Boolean(data)));
+  }, [session.user.id]);
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadGroup(); }, [loadGroup]);
   useEffect(() => {
@@ -632,8 +688,8 @@ function Dashboard({ session }: { session: Session }) {
     if (!group) return;
     const previous = rounds[0];
     const starts = new Date();
-    const submissionEnd = new Date(starts.getTime() + 5 * 86400000);
-    const ratingEnd = new Date(starts.getTime() + 12 * 86400000);
+    const submissionEnd = new Date(starts.getTime() + intervals.submission * 86400000);
+    const ratingEnd = new Date(submissionEnd.getTime() + intervals.rating * 86400000);
     const { error } = await supabase.from("rounds").insert({
       group_id: group.id,
       round_number: (previous?.round_number || 0) + 1,
@@ -671,6 +727,18 @@ function Dashboard({ session }: { session: Session }) {
 
   async function rate(submissionId: string, emoji: Emoji) {
     if (!currentRound) return;
+    const existing = ratings.find((item) => item.submission_id === submissionId && item.user_id === session.user.id);
+    setRatings((items) => existing
+      ? items.map((item) => item.id === existing.id ? { ...item, emoji } : item)
+      : [...items, {
+          id: `optimistic-${submissionId}`,
+          group_id: selectedId,
+          round_id: currentRound.id,
+          submission_id: submissionId,
+          user_id: session.user.id,
+          emoji,
+          points: ratingOptions.find((item) => item.emoji === emoji)?.points || 0,
+        }]);
     const { error } = await supabase.from("ratings").upsert({
       group_id: selectedId,
       round_id: currentRound.id,
@@ -678,7 +746,7 @@ function Dashboard({ session }: { session: Session }) {
       user_id: session.user.id,
       emoji,
     }, { onConflict: "submission_id,user_id" });
-    if (error) setNotice(error.message); else loadGroup();
+    if (error) { setNotice(error.message); loadGroup(); } else loadGroup();
   }
 
   async function approve(member: Member, status: "approved" | "rejected") {
@@ -746,8 +814,9 @@ function Dashboard({ session }: { session: Session }) {
   return (
     <div className="app-bg">
       <header className="topbar">
-        <Logo />
+        <Logo onClick={() => setView("home")} />
         <nav>
+          <button className={view === "home" ? "active" : ""} onClick={() => setView("home")}><House size={16} /> Home</button>
           <button className={view === "round" ? "active" : ""} onClick={() => setView("round")}><Gem size={16} /> Current round</button>
           <button className={view === "history" ? "active" : ""} onClick={() => setView("history")}><History size={16} /> History</button>
         </nav>
@@ -756,12 +825,14 @@ function Dashboard({ session }: { session: Session }) {
           <span>{profile.nickname}</span>
           <span className="streak"><Flame size={15} /> {profile.streak}</span>
           <button onClick={() => setShowProfile(true)} aria-label="Open profile"><UserRound size={17} /></button>
+          {isPlatformAdmin && <button onClick={() => setShowPlatformAdmin(true)} aria-label="Open developer console"><Settings2 size={17} /></button>}
           <button onClick={() => supabase.auth.signOut()} aria-label="Sign out"><LogOut size={17} /></button>
         </div>
       </header>
       {notice && <Notice message={notice} clear={() => setNotice("")} />}
       {showProfile && <UserPanel profile={profile} close={() => setShowProfile(false)} />}
       {showAdmin && group && <AdminPanel group={group} members={members} rounds={rounds} submissions={submissions} close={() => setShowAdmin(false)} refresh={() => { loadGroups(); loadGroup(); }} notify={setNotice} />}
+      {showPlatformAdmin && <PlatformAdminPanel close={() => setShowPlatformAdmin(false)} />}
       {showGroupSetup && <div className="modal-backdrop"><div className="group-modal"><button className="modal-close" onClick={() => setShowGroupSetup(false)}><X size={18} /></button><GroupSetup onDone={() => { setShowGroupSetup(false); loadGroups(); }} /></div></div>}
       <main className="dashboard">
         <aside>
@@ -770,7 +841,8 @@ function Dashboard({ session }: { session: Session }) {
           <button className="new-group" onClick={() => setShowGroupSetup(true)}><Plus size={16} /> New circle</button>
         </aside>
         <div className="main-column">
-          <section className="group-hero">
+          {view === "home" && <HomePage start={() => setView("round")} />}
+          {view !== "home" && <section className="group-hero">
             <div>
               <span className="eyebrow"><Gem size={13} /> Listening circle</span>
               <h1>{group?.name}</h1>
@@ -783,7 +855,7 @@ function Dashboard({ session }: { session: Session }) {
               {isAdmin && <button onClick={() => setShowAdmin(true)} title="Circle administration"><ShieldCheck size={17} /></button>}
               {isAdmin && <button onClick={() => setShowSettings(!showSettings)} title="Time Machine"><Settings2 size={17} /></button>}
             </div>
-          </section>
+          </section>}
 
           {view === "round" && pending.length > 0 && isAdmin && (
             <section className="admin-card">
@@ -804,11 +876,11 @@ function Dashboard({ session }: { session: Session }) {
 
           {view === "round" && phase !== "empty" && (
             <section className="round-status">
-              <div className={`phase-step ${phase === "submit" ? "active" : "done"}`}><span>{phase === "submit" ? "1" : <Check size={15} />}</span><div><strong>Submit</strong><small>Days 1–5</small></div></div>
+              <div className={`phase-step ${phase === "submit" ? "active" : "done"}`}><span>{phase === "submit" ? "1" : <Check size={15} />}</span><div><strong>Submit</strong><small>Choosing interval</small></div></div>
               <i />
-              <div className={`phase-step ${phase === "rate" ? "active" : phase === "reveal" ? "done" : ""}`}><span>{phase === "reveal" ? <Check size={15} /> : "2"}</span><div><strong>Rate</strong><small>Days 6–12</small></div></div>
+              <div className={`phase-step ${phase === "rate" ? "active" : phase === "reveal" ? "done" : ""}`}><span>{phase === "reveal" ? <Check size={15} /> : "2"}</span><div><strong>Rate</strong><small>Listening interval</small></div></div>
               <i />
-              <div className={`phase-step ${phase === "reveal" ? "active" : ""}`}><span>3</span><div><strong>Reveal</strong><small>After day 12</small></div></div>
+              <div className={`phase-step ${phase === "reveal" ? "active" : ""}`}><span>3</span><div><strong>Reveal</strong><small>When ratings close</small></div></div>
               {phase !== "reveal" && <div className="countdown"><Clock3 size={16} /><strong>{countdown(phaseTarget)}</strong><small>UTC countdown</small></div>}
             </section>
           )}
@@ -821,6 +893,7 @@ function Dashboard({ session }: { session: Session }) {
                 <input value={songUrl} onChange={(e) => setSongUrl(e.target.value)} placeholder={mySubmission ? "Paste a new Spotify or YouTube link to swap" : "Paste a Spotify or YouTube link"} required />
                 <button>{mySubmission ? "Swap gem" : "Submit gem"} <ChevronRight size={16} /></button>
               </form>
+              <p className="provider-shortcuts">Need a gem? Browse <a href="https://open.spotify.com/" target="_blank" rel="noreferrer">Spotify</a> or <a href="https://www.youtube.com/" target="_blank" rel="noreferrer">YouTube</a>, then paste the link above.</p>
               {mySubmission && <div className="locked-note"><Check size={16} /><span>Your current link is safely hidden from the group.</span></div>}
               <div className="member-progress">
                 {approved.map((member) => {
@@ -833,7 +906,7 @@ function Dashboard({ session }: { session: Session }) {
 
           {view === "round" && phase === "rate" && (
             <section className="rating-section">
-              <div className="section-title"><div><span className="eyebrow">The gems are unlocked</span><h2>Listen with intention.</h2><p>Rate every song with exactly one reaction. You can change it until time runs out.</p></div><div className="progress-ring"><strong>{myRatings.length}/{currentSubmissions.length}</strong><small>rated</small></div></div>
+              <div className="section-title"><div><span className="eyebrow">The gems are unlocked</span><h2>Listen with intention.</h2><p>Rate every song with exactly one reaction. You can change it until time runs out.</p></div><div className="progress-ring" style={{ "--progress": `${currentSubmissions.length ? myRatings.length / currentSubmissions.length * 360 : 0}deg` } as React.CSSProperties}><strong>{myRatings.length}/{currentSubmissions.length}</strong><small>rated</small></div></div>
               <div className="rating-legend">{ratingOptions.map((item) => <span key={item.emoji}><b>{item.emoji}</b>{item.points} pt · {item.label}</span>)}</div>
               <div className="song-grid">{currentSubmissions.map((submission) => <SongCard key={submission.id} submission={submission} rating={myRatings.find((rating) => rating.submission_id === submission.id)?.emoji} onRate={(emoji) => rate(submission.id, emoji)} disabled={false} />)}</div>
             </section>
@@ -866,6 +939,7 @@ function Dashboard({ session }: { session: Session }) {
         </div>
       </main>
       <nav className="mobile-nav">
+        <button className={view === "home" ? "active" : ""} onClick={() => setView("home")}><House size={18} /><span>Home</span></button>
         <button className={view === "round" ? "active" : ""} onClick={() => setView("round")}><Gem size={18} /><span>Round</span></button>
         <button className={view === "history" ? "active" : ""} onClick={() => setView("history")}><History size={18} /><span>History</span></button>
         <button onClick={() => setShowProfile(true)}><UserRound size={18} /><span>Profile</span></button>

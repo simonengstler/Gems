@@ -4,6 +4,23 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-07-28 — Round intervals are configurable
+
+**Status:** Accepted; supersedes the fixed five-day/seven-day duration
+
+Circle admins may configure separate 1–14 day choosing and rating intervals for
+future rounds. Current rounds retain their stored deadlines. User-facing
+introductory copy describes the cycle abstractly and uses countdowns in active
+rounds.
+
+## 2026-07-28 — Platform operations are separate from circle administration
+
+**Status:** Accepted
+
+Service limits and future operator tooling belong to an explicit,
+RLS-protected platform-admin allowlist. Creating or administering a circle does
+not grant platform access.
+
 ## 2026-07-28 — Repository files are the cross-chat source of truth
 
 **Status:** Accepted
@@ -55,9 +72,10 @@ routes.
 
 **Status:** Accepted
 
-The database stores UTC timestamps. A round contains five submission days and
-seven rating days. The frontend displays relative countdowns instead of asking
-members to interpret a shared timezone.
+The database stores UTC timestamps. The frontend displays relative countdowns
+instead of asking members to interpret a shared timezone.
+
+**Superseded in part:** interval lengths became configurable on 2026-07-28.
 
 ## 2026-07-26 — Names are immutable
 
