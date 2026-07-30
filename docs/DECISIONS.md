@@ -4,6 +4,32 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-07-30 — Reactions require an eligible listener
+
+**Status:** Accepted
+
+Members never rate their own submissions. The database enforces this invariant,
+the listening interface unlocks reactions only after the song is opened, and
+progress counts all eligible member/submission pairs rather than multiplying
+members by every submission indiscriminately.
+
+## 2026-07-30 — Early completion preserves the next interval
+
+**Status:** Accepted
+
+Ending choosing early starts rating immediately but retains the full rating
+duration stored on that round. Completing a phase must not silently consume
+time allocated to the next phase or later rounds.
+
+## 2026-07-30 — Operator usage is protected and non-secret
+
+**Status:** Accepted
+
+The allowlisted platform console may use a service-role server route to report
+non-secret application counters and delivery-log-based free-tier guardrails.
+It never exposes credentials and must clearly distinguish application counters
+from provider billing meters.
+
 ## 2026-07-28 — Round intervals are configurable
 
 **Status:** Accepted; supersedes the fixed five-day/seven-day duration

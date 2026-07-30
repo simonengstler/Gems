@@ -12,6 +12,7 @@ import {
   LoaderCircle,
   LogOut,
   Music2,
+  Play,
   Plus,
   Search,
   Settings2,
@@ -71,6 +72,29 @@ type Rating = {
   points: number;
 };
 type Emoji = "🖤" | "❤️" | "👍" | "👌" | "🤔";
+type PlatformStatus = {
+  checkedAt: string;
+  environment: { appUrl: string | null; supabaseHost: string };
+  resend: {
+    configured: boolean;
+    senderConfigured: boolean;
+    today: number;
+    dailyLimit: number;
+    dailyRemaining: number;
+    month: number;
+    monthlyLimit: number;
+    monthlyRemaining: number;
+    measurement: string;
+  };
+  usage: {
+    users: number;
+    groups: number;
+    rounds: number;
+    submissions: number;
+    ratings: number;
+    pushSubscriptions: number;
+  };
+};
 
 const ratingOptions: { emoji: Emoji; points: number; label: string }[] = [
   { emoji: "🖤", points: 3, label: "New to me, and I love it" },
@@ -520,6 +544,8 @@ function AdminPanel({ group, members, rounds, submissions, close, refresh, notif
 }
 
 function PlatformAdminPanel({ close }: { close: () => void }) {
+  const [status, setStatus] = useState<PlatformStatus | null>(null);
+  const [statusError, setStatusError] = useState("");
   const limits = [
     ["Supabase", "500 MB database", "50k MAU · 5 GB egress · 1 GB files · 2 projects", "https://supabase.com/pricing"],
     ["Supabase Realtime", "2M messages/month", "200 peak connections · 500k Edge calls", "https://supabase.com/pricing"],
@@ -528,11 +554,51 @@ function PlatformAdminPanel({ close }: { close: () => void }) {
     ["Spotify", "No paid API in core flow", "Public embeds and oEmbed metadata", "https://developer.spotify.com/documentation/web-api/concepts/quota-modes"],
     ["Vercel Hobby", "Production host", "Recheck current limits before scaling", "https://vercel.com/pricing"],
   ];
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(async ({ data }) => {
+      const response = await fetch("/api/platform/status", {
+        headers: { authorization: `Bearer ${data.session?.access_token || ""}` },
+      });
+      const result = await response.json() as PlatformStatus | { error?: string };
+      if (!active) return;
+      if (!response.ok) {
+        setStatusError("error" in result ? result.error || "Could not load usage." : "Could not load usage.");
+      } else {
+        setStatus(result as PlatformStatus);
+      }
+    }).catch(() => active && setStatusError("Could not load platform usage."));
+    return () => { active = false; };
+  }, []);
   return (
     <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && close()}>
       <section className="profile-modal admin-modal">
         <button className="modal-close" onClick={close} aria-label="Close"><X size={18} /></button>
         <div className="profile-head"><span className="large-avatar"><Settings2 /></span><div><span className="eyebrow">Platform operations</span><h2>Developer console</h2><p>Visible only to platform administrators</p></div></div>
+        <article className="limits-card">
+          <span className="eyebrow">Live application counters</span><h3>Production readiness</h3>
+          {!status && !statusError && <p className="status-loading"><LoaderCircle className="spin" size={15} /> Reading production usage…</p>}
+          {statusError && <p className="status-error">{statusError}</p>}
+          {status && <>
+            <div className="readiness-row">
+              <div><span className={`readiness-dot ${status.resend.configured ? "ready" : ""}`} /><strong>Resend email</strong><small>{status.resend.configured ? "API key and sender configured" : "Missing API key or sender address"}</small></div>
+              <div><strong>{status.resend.dailyRemaining}</strong><small>of {status.resend.dailyLimit} emails left today</small></div>
+              <div><strong>{status.resend.monthlyRemaining}</strong><small>of {status.resend.monthlyLimit} emails left this month</small></div>
+            </div>
+            <p className="meter-note">Counts come from Gems’ successful-delivery log, not Resend billing. Checked {new Date(status.checkedAt).toLocaleString()}.</p>
+            <div className="usage-metrics">
+              {([
+                ["Users", status.usage.users],
+                ["Circles", status.usage.groups],
+                ["Rounds", status.usage.rounds],
+                ["Gems", status.usage.submissions],
+                ["Ratings", status.usage.ratings],
+                ["Push devices", status.usage.pushSubscriptions],
+              ] as const).map(([label, value]) => <div key={label}><strong>{value}</strong><small>{label}</small></div>)}
+            </div>
+            <p className="environment-note">Backend: {status.environment.supabaseHost} · App: {status.environment.appUrl || "not configured"}</p>
+          </>}
+        </article>
         <article className="limits-card">
           <span className="eyebrow">Free-tier guardrails · reviewed July 2026</span><h3>Service limits</h3>
           <div className="limits-grid">{limits.map(([service, value, note, href]) => <a key={service} href={href} target="_blank" rel="noreferrer"><strong>{service}</strong><b>{value}</b><small>{note}</small><ChevronRight size={14} /></a>)}</div>
@@ -573,8 +639,9 @@ function EmptyRound({ isAdmin, members, start }: { isAdmin: boolean; members: Me
   );
 }
 
-function SongCard({ submission, rating, onRate, disabled }: { submission: Submission; rating?: Emoji; onRate: (emoji: Emoji) => void; disabled: boolean }) {
+function SongCard({ submission, rating, onRate, isOwn }: { submission: Submission; rating?: Emoji; onRate: (emoji: Emoji) => void; isOwn: boolean }) {
   const media = provider(submission.song_url);
+  const [opened, setOpened] = useState(false);
   return (
     <article className="song-card">
       <div className="song-heading">
@@ -582,18 +649,20 @@ function SongCard({ submission, rating, onRate, disabled }: { submission: Submis
         <div><strong>{submission.title || `${submission.users?.nickname || "A group member"}’s gem`}</strong><small>{submission.artist || media?.name || "Music link"} · chosen by {submission.users?.nickname}</small></div>
         {rating && <span className="rated-mark"><Check size={13} /> Rated</span>}
       </div>
-      {media ? <iframe src={media.embed} title={`${media.name} player`} allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" /> :
-        <a className="external-song" href={submission.song_url} target="_blank" rel="noreferrer">Open song <ChevronRight size={15} /></a>}
-      <a className="source-link" href={submission.song_url} target="_blank" rel="noopener noreferrer">
+      {!opened ? <button className="listen-gate" onClick={() => setOpened(true)}><Play size={22} fill="currentColor" /><span><strong>Open player to listen</strong><small>Reactions unlock after this click</small></span></button> :
+        media ? <iframe src={media.embed} title={`${media.name} player`} allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" /> :
+          <a className="external-song" href={submission.song_url} target="_blank" rel="noreferrer">Open song <ChevronRight size={15} /></a>}
+      <a className="source-link" href={submission.song_url} target="_blank" rel="noopener noreferrer" onClick={() => setOpened(true)}>
         Open the original on {media?.name || "its music site"} <ChevronRight size={13} />
       </a>
-      <div className="rating-row">
+      {isOwn ? <p className="own-submission-note">This is your gem — listen, but leave the reactions to your circle.</p> : <div className="rating-row">
         {ratingOptions.map((option) => (
-          <button key={option.emoji} disabled={disabled} className={rating === option.emoji ? "selected" : ""} onClick={() => onRate(option.emoji)} title={`${option.label} · ${option.points} points`}>
+          <button key={option.emoji} disabled={!opened} className={rating === option.emoji ? "selected" : ""} onClick={() => onRate(option.emoji)} title={opened ? `${option.label} · ${option.points} points` : "Open the song before rating"}>
             <span>{option.emoji}</span><small>{option.points}pt</small>
           </button>
         ))}
-      </div>
+      </div>}
+      {!isOwn && !opened && <small className="rating-lock-note">Open this song before choosing a reaction.</small>}
     </article>
   );
 }
@@ -694,6 +763,10 @@ function Dashboard({ session }: { session: Session }) {
   const phase = phaseOf(currentRound);
   const currentSubmissions = submissions.filter((item) => item.round_id === currentRound?.id);
   const currentRatings = ratings.filter((item) => item.round_id === currentRound?.id);
+  const eligibleRatingTotal = approved.reduce(
+    (total, member) => total + currentSubmissions.filter((submission) => submission.user_id !== member.user_id).length,
+    0,
+  );
   const mySubmission = currentSubmissions.find((item) => item.user_id === session.user.id);
   const phaseTarget = phase === "submit" ? currentRound?.submission_ends_at : currentRound?.rating_ends_at;
   void tick;
@@ -741,6 +814,11 @@ function Dashboard({ session }: { session: Session }) {
 
   async function rate(submissionId: string, emoji: Emoji) {
     if (!currentRound) return;
+    const submission = currentSubmissions.find((item) => item.id === submissionId);
+    if (!submission || submission.user_id === session.user.id) {
+      setNotice("You cannot rate your own submission.");
+      return;
+    }
     const existing = ratings.find((item) => item.submission_id === submissionId && item.user_id === session.user.id);
     setRatings((items) => existing
       ? items.map((item) => item.id === existing.id ? { ...item, emoji } : item)
@@ -766,7 +844,7 @@ function Dashboard({ session }: { session: Session }) {
   async function endCurrentPhase() {
     if (!currentRound || !isAdmin) return;
     const allSubmitted = approved.length > 0 && currentSubmissions.length === approved.length;
-    const expectedRatings = approved.length * currentSubmissions.length;
+    const expectedRatings = eligibleRatingTotal;
     const allRated = expectedRatings > 0 && currentRatings.length === expectedRatings;
     if (phase === "submit" && !allSubmitted) {
       setNotice("Every approved member must submit before the choosing interval can end.");
@@ -944,10 +1022,10 @@ function Dashboard({ session }: { session: Session }) {
 
           {view === "round" && phase === "rate" && (
             <section className="rating-section">
-              <div className="section-title"><div><span className="eyebrow">The gems are unlocked</span><h2>Listen with intention.</h2><p>Rate every song with exactly one reaction. You can change it until time runs out.</p></div><ProgressRing value={myRatings.length} total={currentSubmissions.length} label="rated" /></div>
+              <div className="section-title"><div><span className="eyebrow">The gems are unlocked</span><h2>Listen with intention.</h2><p>Open every song before reacting. Nobody rates their own gem, and reactions remain changeable until time runs out.</p></div><ProgressRing value={currentRatings.length} total={eligibleRatingTotal} label="circle ratings" /></div>
               <div className="rating-legend">{ratingOptions.map((item) => <span key={item.emoji}><b>{item.emoji}</b>{item.points} pt · {item.label}</span>)}</div>
-              <div className="song-grid">{currentSubmissions.map((submission) => <SongCard key={submission.id} submission={submission} rating={myRatings.find((rating) => rating.submission_id === submission.id)?.emoji} onRate={(emoji) => rate(submission.id, emoji)} disabled={false} />)}</div>
-              {isAdmin && approved.length > 0 && currentSubmissions.length > 0 && currentRatings.length === approved.length * currentSubmissions.length && <div className="phase-complete-action"><div><Check size={18} /><span><strong>Every reaction is in.</strong><small>You can reveal the results now instead of waiting for the countdown.</small></span></div><button className="primary-button compact" onClick={endCurrentPhase}>End rating interval</button></div>}
+              <div className="song-grid">{currentSubmissions.map((submission) => <SongCard key={submission.id} submission={submission} rating={myRatings.find((rating) => rating.submission_id === submission.id)?.emoji} onRate={(emoji) => rate(submission.id, emoji)} isOwn={submission.user_id === session.user.id} />)}</div>
+              {isAdmin && eligibleRatingTotal > 0 && currentRatings.length === eligibleRatingTotal && <div className="phase-complete-action"><div><Check size={18} /><span><strong>Every eligible reaction is in.</strong><small>You can reveal the results now instead of waiting for the countdown.</small></span></div><button className="primary-button compact" onClick={endCurrentPhase}>End rating interval</button></div>}
             </section>
           )}
 
@@ -981,6 +1059,7 @@ function Dashboard({ session }: { session: Session }) {
         <button className={view === "home" ? "active" : ""} onClick={() => setView("home")}><House size={18} /><span>Home</span></button>
         <button className={view === "round" ? "active" : ""} onClick={() => setView("round")}><Gem size={18} /><span>Round</span></button>
         <button className={view === "history" ? "active" : ""} onClick={() => setView("history")}><History size={18} /><span>History</span></button>
+        <button onClick={() => setShowGroupSetup(true)}><Plus size={18} /><span>Circle</span></button>
         <button onClick={() => setShowProfile(true)}><UserRound size={18} /><span>Profile</span></button>
         {isAdmin && <button onClick={() => setShowAdmin(true)}><ShieldCheck size={18} /><span>Admin</span></button>}
       </nav>

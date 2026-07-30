@@ -70,8 +70,11 @@ alter a round already in progress.
 
 - Submissions are locked.
 - Songs and submitters are revealed.
-- Every member may give exactly one reaction to each submission and may change
-  it until the rating deadline.
+- Every member may give exactly one reaction to each other member's submission
+  and may change it until the rating deadline. Members cannot rate their own
+  submission.
+- A reaction remains locked until the member opens that song's player or
+  original provider link during the current visit.
 - Reactions and points are:
 
 | Reaction | Points | Meaning |
@@ -82,9 +85,10 @@ alter a round already in progress.
 | 👌 | 0 | Decent song, but not quite my taste. |
 | 🤔 | 0 | Interesting choice, but it does not appeal to me. |
 
-- Rating progress is visible without publishing the final ranking early.
-- Once every approved member has rated every submission, a circle admin may end
-  the rating interval immediately and reveal the results.
+- Circle-wide rating progress is the number of completed reactions divided by
+  all eligible member/submission pairs. Self-rating pairs are excluded.
+- Once every approved member has rated every eligible submission, a circle
+  admin may end the rating interval immediately and reveal the results.
 
 ### Phase 3: Reveal and history
 
@@ -92,6 +96,8 @@ alter a round already in progress.
 - The completed round shows a leaderboard, reactions, submitters, and links.
 - Completed rounds remain accessible in History.
 - An admin may start the next round manually.
+- Ending choosing early preserves the current round's full configured rating
+  interval. It does not shorten the next phase or a later round.
 - Automatic round starts happen only when the circle enables automation and an
   external scheduler calls the protected cron endpoint.
 
@@ -113,9 +119,10 @@ alter a round already in progress.
 - Notification delivery is idempotent; the same event must not be sent twice to
   the same recipient for one round.
 - When Resend is not configured, email work is a dry run and no email is sent.
-- A platform-operator view shows reference free-tier limits. It is not visible
-  to ordinary users or circle admins. These are guidance, not live billing
-  meters, and must be periodically reverified with providers.
+- A platform-operator view shows reference free-tier limits plus protected live
+  application counters and remaining Resend allowances calculated from Gems'
+  successful-delivery log. It is not visible to ordinary users or circle
+  admins. Provider reference limits must be periodically reverified.
 
 ## 7. Administrative and developer tools
 
@@ -129,6 +136,7 @@ alter a round already in progress.
 - The production seed endpoint must reject every request.
 - Platform administration is a separate allowlist-backed role. It is not
   implied by being a circle admin.
+- The new-circle entry point remains available on mobile as well as desktop.
 - Early phase completion is checked atomically by the database and requires
   confirmation because it changes the shared live deadline.
 

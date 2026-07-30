@@ -60,6 +60,17 @@ Call `GET /api/cron/rounds` on a regular schedule. In production, provide
 - respects every circle’s email and push switches;
 - performs dry runs when Resend is not configured.
 
+For production email, verify a sending domain in Resend, create a restricted
+API key, and add `RESEND_API_KEY` plus a sender such as
+`Gems <updates@your-verified-domain.example>` in `RESEND_FROM_EMAIL` to the
+Vercel Production environment. Redeploy after changing environment values.
+Every circle still starts with email disabled.
+
+Allowlisted platform operators can open the gear icon in the top-right user
+menu. The developer console shows whether the two Resend values are present,
+remaining free-tier email allowances calculated from the Gems delivery log,
+and current application row counts. It never returns secret values.
+
 ## Validation
 
 ```bash

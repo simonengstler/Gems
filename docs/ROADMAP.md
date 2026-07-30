@@ -1,6 +1,6 @@
 # Gems roadmap
 
-Last updated: 2026-07-28
+Last updated: 2026-07-30
 
 This is the shared status board for future chats. Move work between sections as
 its status changes; do not duplicate the same item in multiple sections.
@@ -22,7 +22,12 @@ its status changes; do not duplicate the same item in multiple sections.
 - Circle admin view with rules, lifecycle, invitations, notification controls,
   interval settings, and member management.
 - Admin-only early phase completion after all submissions or ratings are done.
-- Separate allowlisted platform-operator view for service-limit references.
+- Early choosing completion preserves the full configured rating interval.
+- Ratings exclude each member's own submission, require opening the song first,
+  and show circle-wide eligible progress.
+- Separate allowlisted platform-operator view for service-limit references,
+  production readiness, and live application usage counters.
+- Mobile new-circle access and balanced circle-lifecycle action buttons.
 - One-glance product home page linked from the Gems brand.
 - Browser push subscription and idempotent notification delivery logic.
 - Cost-safe email controls and dry-run behavior when Resend is absent.

@@ -19,6 +19,7 @@ Vercel
   ├─ Static application shell
   ├─ /api/metadata
   ├─ /api/push/subscribe
+  ├─ /api/platform/status
   ├─ /api/cron/rounds
   └─ /api/dev/seed (development requests only)
 
@@ -43,6 +44,8 @@ External optional services
 - `src/app/api/metadata/route.ts` retrieves public Spotify/YouTube metadata.
 - `src/app/api/push/subscribe/route.ts` stores authenticated device
   subscriptions with a server-side service role.
+- `src/app/api/platform/status/route.ts` authenticates a platform allowlist
+  member and returns non-secret production readiness and application counters.
 - `src/app/api/cron/rounds/route.ts` performs scheduled round and notification
   work and requires `CRON_SECRET` in production.
 - `src/app/api/dev/seed/route.ts` creates local dummy data and refuses production
@@ -73,10 +76,11 @@ Supporting tables:
 - `push_subscriptions`: per-user browser push endpoints and keys.
 
 Database triggers enforce updated timestamps, immutable names, membership
-limits, minimum round membership, submission/rating windows, default settings,
-and streak finalization. SQL functions provide safe membership checks, joining,
-leaving, invitation handling, limited user search, and atomic admin-only phase
-completion after all required participation is present.
+limits, minimum round membership, submission/rating windows, the self-rating
+prohibition, default settings, and streak finalization. SQL functions provide
+safe membership checks, joining, leaving, invitation handling, limited user
+search, and atomic admin-only phase completion after all eligible participation
+is present.
 
 All schema changes are forward-only migrations in `supabase/migrations/`.
 
@@ -122,8 +126,10 @@ finalizes the previous round's streaks. Automatic starts are not continuously
 running inside Next.js; they require calls to `/api/cron/rounds`.
 
 `complete_round_phase` locks the active round, verifies circle-admin access,
-counts approved members, submissions, and ratings, and advances the relevant
-deadline only when the whole phase is complete.
+counts approved members, submissions, and eligible ratings, and advances the
+relevant deadline only when the whole phase is complete. If choosing ends
+early, it preserves the round's stored rating duration by moving
+`rating_ends_at` forward with the new phase start.
 
 Time Machine preserves the round’s configured relationship by shifting all
 three timestamps backward together. It is an admin-only production capability
@@ -140,6 +146,12 @@ The cron route:
 - checks `notification_log` before delivery;
 - records only delivered notifications;
 - treats missing Resend configuration as a dry run.
+
+The platform-status route exposes no credentials. It requires both an
+authenticated Supabase token and a `platform_admins` allowlist row. Its Resend
+remaining counts are derived from successful email rows in `notification_log`;
+they are an application-side guardrail rather than the provider's billing
+meter.
 
 There is currently no checked-in production scheduler configuration. Automated
 rounds and notifications therefore depend on an external scheduler being
@@ -198,7 +210,8 @@ Do not document or commit secret values.
 
 - No automated unit, integration, or end-to-end test suite.
 - No checked-in production cron schedule.
-- Resend is intentionally unconfigured, so email notifications do not send.
-- Free-tier limits in the platform-operator view are reference text, not live
-  usage meters.
+- Resend delivery requires a verified sender domain and production environment
+  values before email notifications can send to arbitrary recipients.
+- Provider limits remain reference text; application usage and Resend delivery
+  counts are live.
 - Most product UI remains concentrated in one large client component.
