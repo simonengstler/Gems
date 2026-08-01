@@ -1,6 +1,6 @@
 # Gems architecture
 
-Last verified: 2026-07-28
+Last verified: 2026-08-01
 
 ## System overview
 
@@ -183,13 +183,15 @@ production Supabase values. Production must point at the cloud project, never
 
 Primary production URL:
 
-`https://gems-rosy.vercel.app`
+`https://gems-music.com`
 
 Primary production host: Vercel Hobby.
 
-Supabase Auth's site URL and redirect allowlist include the production URL and
-local development URLs. Database migrations are pushed independently with the
-Supabase CLI.
+`gems-music.com` is registered with Vercel, uses Vercel DNS, and is assigned to
+the `gems` project. The legacy `gems-rosy.vercel.app` alias remains available.
+Supabase Auth's site URL and redirect allowlist include the primary domain,
+`www`, the legacy alias, and local development URLs. Database migrations are
+pushed independently with the Supabase CLI.
 
 The Vercel account is not connected to the GitHub identity. Vercel may block a
 normal CLI source deployment when it tries to match Git commit authors. The

@@ -1,6 +1,6 @@
 # Gems roadmap
 
-Last updated: 2026-07-30
+Last updated: 2026-08-01
 
 This is the shared status board for future chats. Move work between sections as
 its status changes; do not duplicate the same item in multiple sections.
@@ -34,7 +34,8 @@ its status changes; do not duplicate the same item in multiple sections.
 - Admin-only production Time Machine with confirmation.
 - Development-only dummy data.
 - Supabase RLS and production migrations.
-- Public Vercel deployment at `https://gems-rosy.vercel.app`.
+- Custom production domain at `https://gems-music.com`, with the legacy Vercel
+  alias retained.
 - Repository-scoped Git history and GitHub remote.
 
 ## Reliability next

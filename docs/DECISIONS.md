@@ -4,6 +4,14 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-08-01 — gems-music.com is the canonical production domain
+
+**Status:** Accepted; supersedes `gems-rosy.vercel.app` as the primary URL
+
+The application, authentication redirects, and notification links use
+`https://gems-music.com`. Vercel owns registration and DNS for the domain. The
+old `vercel.app` address remains a working fallback alias.
+
 ## 2026-07-30 — Reactions require an eligible listener
 
 **Status:** Accepted
@@ -58,7 +66,7 @@ updated in the same commit as material behavior changes.
 
 ## 2026-07-26 — Vercel is the primary public host
 
-**Status:** Accepted
+**Status:** Accepted; superseded in part by the custom-domain decision above
 
 The production application is hosted at `https://gems-rosy.vercel.app` so it is
 independent of an OpenAI account session. Supabase remains the backend. Hosting

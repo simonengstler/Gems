@@ -4,7 +4,7 @@ Gems is a private, 12-day music discovery ritual for groups of 2–8 people.
 Members submit one Spotify or YouTube link, listen and react during the rating
 phase, then keep the leaderboard and reactions in a permanent round archive.
 
-Production: [https://gems-rosy.vercel.app](https://gems-rosy.vercel.app)
+Production: [https://gems-music.com](https://gems-music.com)
 
 ## Project documentation
 
