@@ -1,6 +1,7 @@
 # Gems
 
-Gems is a private, 12-day music discovery ritual for groups of 2–8 people.
+Gems is a private music-discovery ritual for groups of 2–8 people. Each circle
+chooses the duration of its choosing and rating intervals.
 Members submit one Spotify or YouTube link, listen and react during the rating
 phase, then keep the leaderboard and reactions in a permanent round archive.
 
@@ -11,6 +12,8 @@ Production: [https://gems-music.com](https://gems-music.com)
 - [`APP_RULES.md`](APP_RULES.md) — canonical product behavior and invariants.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system, data, security, and
   deployment boundaries.
+- [`docs/OPERATIONS.md`](docs/OPERATIONS.md) — local setup, migrations,
+  production release, verification, rollback, and operator access.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — shipped capabilities and prioritized
   gaps.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — consequential product and technical

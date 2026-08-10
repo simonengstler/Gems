@@ -6,8 +6,9 @@ Before changing product behavior, read:
 
 1. `APP_RULES.md` for product rules and user-facing behavior.
 2. `docs/ARCHITECTURE.md` for system boundaries, data ownership, security, and deployment.
-3. `docs/ROADMAP.md` for current status and known gaps.
-4. `docs/DECISIONS.md` when a change revisits an existing product or technical decision.
+3. `docs/OPERATIONS.md` for the canonical local, migration, and Vercel production runbook.
+4. `docs/ROADMAP.md` for current status and known gaps.
+5. `docs/DECISIONS.md` when a change revisits an existing product or technical decision.
 
 Do not assume another chat's transcript is available. Treat the repository,
 current working tree, Git history, migrations, and these documents as the shared
@@ -19,6 +20,10 @@ source of truth.
 - Tailwind CSS 4, Shadcn UI/Radix primitives, and Lucide icons.
 - Supabase Auth and PostgreSQL with strict Row Level Security.
 - Vercel Hobby is the primary production host.
+- `https://gems-music.com` is the canonical public production URL; the
+  `gems-rosy.vercel.app` URL is a fallback alias.
+- Vercel is the only supported deployment target. Do not add or restore a
+  Sites/Cloudflare hosting binding without explicit user approval.
 - Product UI currently lives mainly in `src/components/gems-app.tsx`.
 - Database changes are forward-only migrations under `supabase/migrations/`.
 
@@ -89,6 +94,10 @@ ready and the live behavior has been checked.
   lockfile changes in commits.
 - Deployment is a separate external action. Deploy when the user requests it or
   when the active task explicitly includes production delivery.
+- For a Vercel production deployment, follow `docs/OPERATIONS.md` exactly:
+  pull Production values, export them before building, verify no local Supabase
+  URL entered the artifact, stage a secret-free prebuilt runtime outside Git,
+  deploy it, and verify the permanent alias. A Git push alone is never a deploy.
 
 ## Living documentation
 
@@ -101,6 +110,8 @@ ready and the live behavior has been checked.
 - Add an entry to `docs/DECISIONS.md` for consequential decisions and meaningful
   reversals. Do not rewrite old decisions; mark them superseded.
 - Update `README.md` when setup or operator instructions change.
+- Update `docs/OPERATIONS.md` whenever the reliable local, migration, release,
+  rollback, domain, or verification procedure changes.
 - Include relevant documentation in the same commit as the implementation.
 - Do not churn documentation for internal refactors that do not affect
   behavior, architecture, operations, or planned work.

@@ -1,6 +1,6 @@
 # Gems roadmap
 
-Last updated: 2026-08-01
+Last updated: 2026-08-10
 
 This is the shared status board for future chats. Move work between sections as
 its status changes; do not duplicate the same item in multiple sections.
@@ -37,6 +37,8 @@ its status changes; do not duplicate the same item in multiple sections.
 - Custom production domain at `https://gems-music.com`, with the legacy Vercel
   alias retained.
 - Repository-scoped Git history and GitHub remote.
+- Durable cross-chat operations runbook for local setup, migrations, Vercel
+  production release, verification, rollback, and role access.
 
 ## Reliability next
 
@@ -66,8 +68,8 @@ its status changes; do not duplicate the same item in multiple sections.
 - Split `src/components/gems-app.tsx` into cohesive feature components and hooks.
 - Generate and use typed Supabase database definitions.
 - Centralize provider parsing and phase calculations in tested domain modules.
-- Remove hosting-specific build dependencies that are no longer needed after
-  confirming Vercel is the sole supported production target.
+- Remove no-longer-used Vite, Vinext, Cloudflare, and Wrangler dependencies
+  after reviewing the user-owned lockfile state.
 - Review the dependency and lockfile state after the hosting transitions.
 - Update the Vercel service-limit card now that Vercel is the active host.
 

@@ -1,6 +1,6 @@
 # Gems architecture
 
-Last verified: 2026-08-01
+Last verified: 2026-08-10
 
 ## System overview
 
@@ -181,6 +181,10 @@ production Supabase values. Production must point at the cloud project, never
 
 ## Deployment
 
+The exact release and verification sequence lives in
+[`docs/OPERATIONS.md`](OPERATIONS.md). It is mandatory reading before a
+production deployment.
+
 Primary production URL:
 
 `https://gems-music.com`
@@ -195,16 +199,11 @@ pushed independently with the Supabase CLI.
 
 The Vercel account is not connected to the GitHub identity. Vercel may block a
 normal CLI source deployment when it tries to match Git commit authors. The
-known working path is:
-
-1. Pull Vercel's production environment.
-2. Build a verified prebuilt artifact with production values exported.
-3. Confirm the artifact contains the cloud Supabase hostname and no localhost
-   hostname.
-4. Stage the prebuilt output and traced runtime files in a temporary directory
-   without `.git`.
-5. Deploy the staged artifact with `vercel deploy --prebuilt --prod`.
-6. Verify the permanent alias, HTTP response, and live browser bundle.
+known working path is a locally built, Vercel Production-configured prebuilt
+artifact staged outside Git and deployed with `vercel deploy --prebuilt --prod`.
+This prevents an author-identity failure and prevents `.env.local` from leaking
+into production. The runbook includes the required traced-runtime staging and
+post-deployment verification.
 
 Do not document or commit secret values.
 

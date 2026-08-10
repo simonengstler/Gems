@@ -4,6 +4,16 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-08-10 — Repository documentation is the operational handoff
+
+**Status:** Accepted
+
+Fresh chats must use `AGENTS.md` and `docs/OPERATIONS.md` as the canonical
+handoff for local setup, forward-only migrations, Vercel prebuilt production
+release, live verification, rollback, and operator access. Vercel is the only
+supported deployment target; the older private Sites wiring was removed to
+avoid conflicting deployment instructions.
+
 ## 2026-08-01 — gems-music.com is the canonical production domain
 
 **Status:** Accepted; supersedes `gems-rosy.vercel.app` as the primary URL
