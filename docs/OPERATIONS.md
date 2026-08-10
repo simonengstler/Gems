@@ -87,6 +87,12 @@ Vercel is not reliably connected to the GitHub author identity. Do **not** use
 a normal source deployment. Build locally using Vercel Production environment
 values, then deploy a prebuilt artifact staged outside the Git worktree.
 
+Production email requires all of `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and
+`CRON_SECRET` in the Vercel Production environment. Check their presence with
+`npx vercel env ls production`; without a Resend API key and verified sender,
+no email can be delivered. After changing any of these values, redeploy and use
+the circle admin’s **Send test email to me** action to verify delivery.
+
 ### Release sequence
 
 1. Validate source and commit the focused change. Push `main`.

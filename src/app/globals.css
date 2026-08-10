@@ -285,6 +285,9 @@ aside { padding: 8px 12px 0 0; }
 .setting-row input:checked { background: var(--green-2); }
 .setting-row input:checked:after { transform: translateX(17px); }
 .admin-copy { color: var(--muted); font-size: 11px; line-height: 1.6; }
+.settings-loading { min-height: 150px; display: flex; align-items: center; gap: 7px; }
+.test-email-button { margin-top: 14px; padding: 9px 11px; border: 1px solid #b9d5c6; border-radius: 8px; color: var(--green); background: #edf6f1; cursor: pointer; font-size: 10px; font-weight: 750; }
+.test-email-button:disabled { opacity: .55; cursor: not-allowed; }
 .invite-output { margin-top: 10px; font-size: 9px; }
 .usage-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 18px; }
 .usage-summary div { padding: 12px 5px; display: flex; flex-direction: column; align-items: center; border-radius: 9px; background: white; }

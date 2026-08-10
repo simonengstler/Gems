@@ -69,6 +69,11 @@ API key, and add `RESEND_API_KEY` plus a sender such as
 Vercel Production environment. Redeploy after changing environment values.
 Every circle still starts with email disabled.
 
+Vercel Hobby runs the notification route once daily. Enable a circle’s master
+email switch to send the admin a test message, then use the **Send test email
+to me** action in Circle Admin to verify delivery. Phase emails are delivered
+during their active interval rather than at an exact minute on the free plan.
+
 Allowlisted platform operators can open the gear icon in the top-right user
 menu. The developer console shows whether the two Resend values are present,
 remaining free-tier email allowances calculated from the Gems delivery log,

@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import webpush from "web-push";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
   if (process.env.NODE_ENV === "production" && (!cronSecret || request.headers.get("authorization") !== `Bearer ${cronSecret}`)) {
@@ -55,9 +57,9 @@ export async function GET(request: NextRequest) {
     const submissionEnds = new Date(round.submission_ends_at).getTime();
     const ratingEnds = new Date(round.rating_ends_at).getTime();
     const candidates: { type: string; enabled: boolean; subject: string; body: string; active: boolean }[] = [
-      { type: "round_started", enabled: setting.round_started_email, subject: `${group.name}: a new Gems round started`, body: "Submit one musical gem before the choosing interval closes.", active: now >= startsAt && now - startsAt < 3600000 },
-      { type: "rating_started", enabled: setting.rating_started_email, subject: `${group.name}: the gems are unlocked`, body: "Listen to every song and leave exactly one reaction.", active: now >= submissionEnds && now - submissionEnds < 3600000 },
-      { type: "streak_warning", enabled: setting.streak_warning_email, subject: `${group.name}: your streak is in danger`, body: "Only 12 hours remain to finish your ratings.", active: ratingEnds - now > 11 * 3600000 && ratingEnds - now <= 12 * 3600000 },
+      { type: "round_started", enabled: setting.round_started_email, subject: `${group.name}: a new Gems round started`, body: "Submit one musical gem before the choosing interval closes.", active: now >= startsAt && now < submissionEnds },
+      { type: "rating_started", enabled: setting.rating_started_email, subject: `${group.name}: the gems are unlocked`, body: "Listen to every song and leave exactly one reaction.", active: now >= submissionEnds && now < ratingEnds },
+      { type: "streak_warning", enabled: setting.streak_warning_email, subject: `${group.name}: your streak is in danger`, body: "Finish your ratings before the interval closes.", active: ratingEnds - now > 0 && ratingEnds - now <= 24 * 3600000 },
     ];
     const { data: members } = await admin.from("group_members").select("user_id").eq("group_id", group.id).eq("status", "approved");
     for (const candidate of candidates.filter((item) => item.enabled && item.active)) {

@@ -4,6 +4,18 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-08-10 — Free-tier email notifications use a daily scheduled check
+
+**Status:** Accepted
+
+Vercel Cron calls the protected notification route once daily at 12:00 UTC.
+Event eligibility spans the relevant round phase, and notification-log
+idempotency ensures each eligible recipient receives each event only once.
+This keeps the feature within Vercel Hobby limits; it does not promise
+minute-precise delivery. Enabling a circle's email master switch sends the
+enabling admin a test email when Resend is configured, so sender configuration
+problems are visible immediately.
+
 ## 2026-08-10 — Repository documentation is the operational handoff
 
 **Status:** Accepted

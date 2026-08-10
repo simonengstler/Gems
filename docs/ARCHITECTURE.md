@@ -147,15 +147,20 @@ The cron route:
 - records only delivered notifications;
 - treats missing Resend configuration as a dry run.
 
+`vercel.json` schedules this route once each day at 12:00 UTC. Vercel Hobby
+may invoke it within that hour, so candidate notifications remain eligible for
+their whole choosing/rating interval and the final 24 hours before rating ends.
+The notification log keeps each recipient/event pair idempotent.
+
 The platform-status route exposes no credentials. It requires both an
 authenticated Supabase token and a `platform_admins` allowlist row. Its Resend
 remaining counts are derived from successful email rows in `notification_log`;
 they are an application-side guardrail rather than the provider's billing
 meter.
 
-There is currently no checked-in production scheduler configuration. Automated
-rounds and notifications therefore depend on an external scheduler being
-configured separately.
+The free schedule is deliberately daily. More frequent or minute-precise
+notifications require a paid Vercel plan or an explicitly approved external
+scheduler.
 
 ## Environment variables
 

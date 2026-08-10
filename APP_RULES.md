@@ -122,6 +122,11 @@ alter a round already in progress.
 - Notification delivery is idempotent; the same event must not be sent twice to
   the same recipient for one round.
 - When Resend is not configured, email work is a dry run and no email is sent.
+- Enabling a circle’s email master switch sends the enabling admin a test email
+  when delivery is configured. The admin view reports a clear configuration
+  error when it is not.
+- On Vercel Hobby, the free scheduled check runs once daily, so phase emails
+  are delivered during the relevant interval rather than at an exact minute.
 - A platform-operator view shows reference free-tier limits plus protected live
   application counters and remaining Resend allowances calculated from Gems'
   successful-delivery log. It is not visible to ordinary users or circle

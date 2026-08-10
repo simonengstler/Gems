@@ -46,8 +46,8 @@ its status changes; do not duplicate the same item in multiple sections.
 
 - Add an automated test foundation for phase calculation, URL parsing, scoring,
   RLS-sensitive workflows, and critical UI flows.
-- Add a free-tier-compatible daily scheduler for `/api/cron/rounds`, or document
-  the chosen external scheduler and its monitoring.
+- Verify the daily Vercel Cron invocation and its logs after the first
+  production day with a configured Resend sender.
 - Add a production smoke-test script that checks HTTP availability, cloud
   Supabase configuration, authentication CORS, and absence of localhost URLs.
 - Add error reporting or lightweight observability that stays within free-tier
