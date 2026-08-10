@@ -148,7 +148,7 @@ const ui = {
     authTitle: <>Teile Songs.<br />Entdecke neue <em>Favoriten.</em></>,
     authDescription: "Gems ist ein privater Music Circle für Freunde und Familie. Jede Person fügt einen Song hinzu. Dann hört ihr gemeinsam und reagiert darauf.",
     share: "Teilen", shareHint: "Einen Song hinzufügen", listen: "Hören", listenHint: "Zusammen reagieren", reveal: "Ergebnisse", revealHint: "Favoriten sehen",
-    welcome: "Willkommen", signInTitle: "Anmelden", signInDescription: "Weiter zu deinem Musikkreis.",
+    welcome: "Willkommen", signInTitle: "Anmelden", signInDescription: "Weiter zu deinem Music Circle.",
     signupKicker: "Neu bei Gems?", signupTitle: "Konto erstellen", signupDescription: "Wähle einen Namen, den deine Freunde kennen. Du kannst ihn später nicht ändern.",
     resetKicker: "Passwort-Hilfe", resetTitle: "Passwort zurücksetzen", resetDescription: "Wir schicken dir einen Link für ein neues Passwort.",
     nickname: "Name", email: "E-Mail", password: "Passwort", passwordPlaceholder: "Mindestens 8 Zeichen", forgotPassword: "Passwort vergessen?",
@@ -291,7 +291,7 @@ function AuthScreen({ language, setLanguage }: { language: Language; setLanguage
         });
         if (error) throw error;
         if (!result.user) throw new Error("Account could not be created.");
-        setMessage(result.session ? "Welcome to Gems." : text.signedUp);
+        setMessage(result.session ? (language === "de" ? "Willkommen bei Gems." : "Welcome to Gems.") : text.signedUp);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -408,7 +408,7 @@ function GroupSetup({ onDone, language, setLanguage }: { onDone: () => void; lan
         </div>
         <form onSubmit={submit} className="form-stack">
           <label>{text.circleName}<input name="name" required minLength={2} maxLength={80} placeholder={tab === "create" ? "Sunday Selects" : text.exactCircleName} /></label>
-          {tab === "create" && <label>{text.rules} <span>({text.optional})</span><textarea name="rules" maxLength={5000} placeholder="No repeats. No guilty pleasures. Surprise us." /></label>}
+          {tab === "create" && <label>{text.rules} <span>({text.optional})</span><textarea name="rules" maxLength={5000} placeholder={language === "de" ? "Keine Wiederholungen. Überrascht uns." : "No repeats. No guilty pleasures. Surprise us."} /></label>}
           <button className="primary-button" disabled={busy}>{busy ? <LoaderCircle className="spin" size={17} /> : tab === "create" ? <Gem size={17} /> : <Users size={17} />}{tab === "create" ? text.createCircle : text.requestJoin}</button>
         </form>
         {message && <p className="form-message">{message}</p>}
@@ -1061,9 +1061,9 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
           <span className="avatar">{profile.nickname.slice(0, 1).toUpperCase()}</span>
           <span>{profile.nickname}</span>
           <span className="streak"><Flame size={15} /> {profile.streak}</span>
-          <button onClick={() => setShowProfile(true)} aria-label="Open profile"><UserRound size={17} /></button>
-          {isPlatformAdmin && <button onClick={() => setShowPlatformAdmin(true)} aria-label="Open developer console"><Settings2 size={17} /></button>}
-          <button onClick={() => supabase.auth.signOut()} aria-label="Sign out"><LogOut size={17} /></button>
+          <button onClick={() => setShowProfile(true)} aria-label={text.openProfile}><UserRound size={17} /></button>
+          {isPlatformAdmin && <button onClick={() => setShowPlatformAdmin(true)} aria-label={text.openDeveloperConsole}><Settings2 size={17} /></button>}
+          <button onClick={() => supabase.auth.signOut()} aria-label={text.signOut}><LogOut size={17} /></button>
         </div>
       </header>
       {notice && <Notice message={notice} clear={() => setNotice("")} />}
@@ -1130,7 +1130,7 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
                 <input value={songUrl} onChange={(e) => setSongUrl(e.target.value)} placeholder={mySubmission ? text.pasteNewMusic : text.pasteMusic} required />
                 <button>{mySubmission ? text.swapGem : text.submitGem} <ChevronRight size={16} /></button>
               </form>
-              <p className="provider-shortcuts">{text.needGem} <a href="https://open.spotify.com/" target="_blank" rel="noreferrer">Spotify</a> or <a href="https://www.youtube.com/" target="_blank" rel="noreferrer">YouTube</a>, {text.pasteLink}</p>
+              <p className="provider-shortcuts">{text.needGem} <a href="https://open.spotify.com/" target="_blank" rel="noreferrer">Spotify</a>{language === "de" ? " oder " : " or "}<a href="https://www.youtube.com/" target="_blank" rel="noreferrer">YouTube</a>, {text.pasteLink}</p>
               {mySubmission && <div className="locked-note"><Check size={16} /><span>{text.currentLinkHidden}</span></div>}
               <div className="member-progress">
                 {approved.map((member) => {
@@ -1172,7 +1172,7 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
                   reactions: ratings.filter((rating) => rating.submission_id === song.id),
                   score: ratings.filter((rating) => rating.submission_id === song.id).reduce((sum, rating) => sum + rating.points, 0),
                 })).sort((a, b) => b.score - a.score);
-                return <div className="history-entry" key={round.id}><button className="history-row" onClick={() => setExpandedRound(expandedRound === round.id ? null : round.id)}><span><Gem size={17} /></span><div><strong>{text.currentRound} {round.round_number}</strong><small>{new Date(round.starts_at).toLocaleDateString(language, { month: "long", day: "numeric", year: "numeric" })}</small></div><div>{songs.length} Gems</div><ChevronRight className={expandedRound === round.id ? "rotate" : ""} size={17} /></button>{expandedRound === round.id && <div className="history-detail">{songs.map((song, index) => <div key={song.id}><span>#{index + 1}</span>{song.thumbnail_url ? <span className="history-art" role="img" aria-label="" style={{ backgroundImage: `url("${song.thumbnail_url}")` }} /> : <span className="mini-cover"><Music2 size={15} /></span>}<div><strong>{song.title || `${song.users?.nickname}'s gem`}</strong><small>{song.artist || song.users?.nickname}</small></div><span className="history-reactions">{song.reactions.map((reaction) => reaction.emoji).join(" ")}</span><b>{song.score} {text.points}</b><a href={song.song_url} target="_blank" rel="noreferrer"><ChevronRight size={15} /></a></div>)}</div>}</div>;
+                return <div className="history-entry" key={round.id}><button className="history-row" onClick={() => setExpandedRound(expandedRound === round.id ? null : round.id)}><span><Gem size={17} /></span><div><strong>{text.round} {round.round_number}</strong><small>{new Date(round.starts_at).toLocaleDateString(language, { month: "long", day: "numeric", year: "numeric" })}</small></div><div>{songs.length} Gems</div><ChevronRight className={expandedRound === round.id ? "rotate" : ""} size={17} /></button>{expandedRound === round.id && <div className="history-detail">{songs.map((song, index) => <div key={song.id}><span>#{index + 1}</span>{song.thumbnail_url ? <span className="history-art" role="img" aria-label="" style={{ backgroundImage: `url("${song.thumbnail_url}")` }} /> : <span className="mini-cover"><Music2 size={15} /></span>}<div><strong>{song.title || `${text.songBy} ${song.users?.nickname || "—"}`}</strong><small>{song.artist || song.users?.nickname}</small></div><span className="history-reactions">{song.reactions.map((reaction) => reaction.emoji).join(" ")}</span><b>{song.score} {text.points}</b><a href={song.song_url} target="_blank" rel="noreferrer"><ChevronRight size={15} /></a></div>)}</div>}</div>;
               })}
           </section>}
         </div>

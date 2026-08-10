@@ -13,7 +13,8 @@ listen together, react, and preserve the results as a shared history.
 The visual language uses gems to represent songs worth keeping.
 
 The interface is available in English and German. A visible language switch
-changes the app language and remembers the choice on the user’s device.
+changes the app language and remembers the choice on the user’s device. German
+uses **Circle** as the product term.
 
 ## 2. Accounts and profiles
 

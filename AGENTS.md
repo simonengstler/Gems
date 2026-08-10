@@ -53,6 +53,10 @@ deprecation notices.
 
 - Inspect the current implementation and migrations before proposing a schema
   or behavior change.
+- Gems supports English and German. Every new or changed user-facing string,
+  state, dialog, label, and validation message must be added and reviewed in
+  both languages in the same change. In German, use **Circle** (not
+  **Kreis**) as the product term.
 - Make the smallest cohesive change that completes the requested outcome.
 - Preserve unrelated user changes in a dirty working tree.
 - Add a new Supabase migration for schema, trigger, function, grant, or RLS
