@@ -23,7 +23,7 @@ import {
   X,
 } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase";
 
 type Profile = { id: string; nickname: string; streak: number };
@@ -72,6 +72,7 @@ type Rating = {
   points: number;
 };
 type Emoji = "🖤" | "❤️" | "👍" | "👌" | "🤔";
+type Language = "en" | "de";
 type PlatformStatus = {
   checkedAt: string;
   environment: { appUrl: string | null; supabaseHost: string };
@@ -104,6 +105,58 @@ const ratingOptions: { emoji: Emoji; points: number; label: string }[] = [
   { emoji: "🤔", points: 0, label: "Interesting, not for my ears" },
 ];
 
+const ui = {
+  en: {
+    language: "DE",
+    languageLabel: "Deutsch anzeigen",
+    authEyebrow: "Share music with your people",
+    authTitle: <>Share a song.<br />Find new <em>favorites.</em></>,
+    authDescription: "Gems is a private music circle for friends and family. Everyone adds one song. Then you listen and react together.",
+    share: "Share", shareHint: "Add one song", listen: "Listen", listenHint: "React together", reveal: "Reveal", revealHint: "See the favorites",
+    welcome: "Welcome", signInTitle: "Sign in", signInDescription: "Continue with your music circle.",
+    signupKicker: "New to Gems?", signupTitle: "Create your account", signupDescription: "Choose a nickname your friends know. You cannot change it later.",
+    resetKicker: "Password help", resetTitle: "Reset your password", resetDescription: "We will email you a link to choose a new password.",
+    nickname: "Nickname", email: "Email", password: "Password", passwordPlaceholder: "At least 8 characters", forgotPassword: "Forgot password?",
+    signIn: "Sign in", createAccount: "Create account", sendResetLink: "Send reset link", newHere: "New here?", alreadyHaveAccount: "Already have an account?",
+    resetSent: "Password reset link sent. Check your inbox.", signedUp: "Check your email to confirm your account. Then sign in.", somethingWrong: "Something went wrong.",
+    setupKicker: "Your music circle", setupTitle: "Create or join a circle", setupDescription: "Create a private circle for friends, or join one with its exact name.", create: "Create", join: "Join", circleName: "Circle name", exactCircleName: "Enter the exact circle name", rules: "Circle rules", optional: "optional", createCircle: "Create circle", requestJoin: "Ask to join", requestSent: "Request sent. The circle admin can approve you.", couldNotContinue: "Could not continue.",
+    home: "Home", currentRound: "Current round", history: "History", newCircle: "New circle", profile: "Profile", admin: "Admin", yourCircles: "Your circles", members: "members", listeningCircle: "Music circle",
+    homeEyebrow: "Music with friends, not an endless feed", homeTitle: "Share songs. Discover new favorites.", homeDescription: "Gems is a private music circle. Each person adds one song, then everyone listens and reacts. Your favorites stay saved.", choosePrivately: "Add a song", choosePrivatelyText: "Each person shares one song. It stays hidden until listening begins.", listenTogether: "Listen and react", listenTogetherText: "Listen to the songs and choose a simple reaction.", keepWhatMatters: "See the results", keepWhatMattersText: "Find the favorites and keep every round in your history.", goToRound: "Go to current round",
+    freshCircle: "A new circle", waitingForGems: "Ready for your first round", needFriend: "Invite at least one friend. Then the admin can start the first round.", circleReady: "Your circle is ready. The admin can start the first round.", startRound: "Start round", adminStarts: "The circle admin will start the round.",
+    submit: "Submit", rate: "Rate", revealPhase: "Reveal", choosing: "Choose a song", listening: "Listen and react", revealWhenClosed: "See results", utcCountdown: "Time left", submissionPhase: "Add your song", yourGemIn: "Your song is added.", whatsYourGem: "Which song do you want to share?", swapAnytime: "You can change it until time runs out.", shareTrack: "Add one Spotify track, album, or YouTube video. It stays hidden until everyone can listen.", pasteMusic: "Paste a Spotify or YouTube link", pasteNewMusic: "Paste a new Spotify or YouTube link", submitGem: "Add song", swapGem: "Change song", needGem: "Need a song? Find one on", pasteLink: "then paste the link here.", currentLinkHidden: "Your song is hidden from the circle.", songAdded: "Song added", choosingSong: "Choosing a song…", allSongsIn: "Everyone added a song.", openRating: "You can open listening now instead of waiting.", endChoosing: "Start listening",
+    gemsUnlocked: "Songs are ready", listenWithIntention: "Listen, then react.", ratingDescription: "Open each song before you react. You cannot react to your own song.", circleRatings: "reactions", allReactionsIn: "Everyone has reacted.", revealResultsNow: "You can show the results now instead of waiting.", endRating: "Show results", roundComplete: "Round complete", brightestGems: "Circle favorites", revealDescription: "Every song and reaction, saved for your circle.", openSong: "Open song", points: "pts", startNextRound: "Start next round", vault: "Your music history", listeningHistory: "Past rounds", noHistory: "Completed rounds will appear here.",
+    profileSetupTitle: "Choose your nickname", profileSetupDescription: "Your circle will know you by this name. You cannot change it later.", finishSetup: "Finish setup", loading: "Loading Gems…",
+    rated: "Rated", openPlayer: "Open player to listen", reactionsUnlock: "Reactions unlock after this click", openOriginal: "Open the original on", ownSong: "This is your song. Listen, but leave the reactions to your circle.", openBeforeReacting: "Open this song before choosing a reaction.",
+  },
+  de: {
+    language: "EN",
+    languageLabel: "Show English",
+    authEyebrow: "Teile Musik mit deinen Leuten",
+    authTitle: <>Teile Songs.<br />Entdecke neue <em>Favoriten.</em></>,
+    authDescription: "Gems ist ein privater Musikkreis für Freunde und Familie. Jede Person fügt einen Song hinzu. Dann hört ihr gemeinsam und reagiert darauf.",
+    share: "Teilen", shareHint: "Einen Song hinzufügen", listen: "Hören", listenHint: "Zusammen reagieren", reveal: "Ergebnisse", revealHint: "Favoriten sehen",
+    welcome: "Willkommen", signInTitle: "Anmelden", signInDescription: "Weiter zu deinem Musikkreis.",
+    signupKicker: "Neu bei Gems?", signupTitle: "Konto erstellen", signupDescription: "Wähle einen Namen, den deine Freunde kennen. Du kannst ihn später nicht ändern.",
+    resetKicker: "Passwort-Hilfe", resetTitle: "Passwort zurücksetzen", resetDescription: "Wir schicken dir einen Link für ein neues Passwort.",
+    nickname: "Name", email: "E-Mail", password: "Passwort", passwordPlaceholder: "Mindestens 8 Zeichen", forgotPassword: "Passwort vergessen?",
+    signIn: "Anmelden", createAccount: "Konto erstellen", sendResetLink: "Link senden", newHere: "Neu hier?", alreadyHaveAccount: "Schon ein Konto?",
+    resetSent: "Link zum Zurücksetzen gesendet. Schau in dein Postfach.", signedUp: "Bestätige deine E-Mail. Danach kannst du dich anmelden.", somethingWrong: "Etwas ist schiefgelaufen.",
+    setupKicker: "Dein Musikkreis", setupTitle: "Kreis erstellen oder beitreten", setupDescription: "Erstelle einen privaten Kreis für Freunde oder tritt mit dem genauen Namen bei.", create: "Erstellen", join: "Beitreten", circleName: "Kreisname", exactCircleName: "Genauen Kreisnamen eingeben", rules: "Regeln im Kreis", optional: "optional", createCircle: "Kreis erstellen", requestJoin: "Beitritt anfragen", requestSent: "Anfrage gesendet. Der Admin kann dich freigeben.", couldNotContinue: "Weiter geht es gerade nicht.",
+    home: "Start", currentRound: "Aktuelle Runde", history: "Verlauf", newCircle: "Neuer Kreis", profile: "Profil", admin: "Admin", yourCircles: "Deine Kreise", members: "Mitglieder", listeningCircle: "Musikkreis",
+    homeEyebrow: "Musik mit Freunden, nicht mit einem endlosen Feed", homeTitle: "Teile Songs. Entdecke neue Favoriten.", homeDescription: "Gems ist ein privater Musikkreis. Jede Person fügt einen Song hinzu, dann hören alle und reagieren. Eure Favoriten bleiben gespeichert.", choosePrivately: "Song hinzufügen", choosePrivatelyText: "Jede Person teilt einen Song. Er bleibt verborgen, bis das Hören beginnt.", listenTogether: "Hören und reagieren", listenTogetherText: "Höre die Songs und wähle eine einfache Reaktion.", keepWhatMatters: "Ergebnisse sehen", keepWhatMattersText: "Finde eure Favoriten und bewahre jede Runde im Verlauf.", goToRound: "Zur aktuellen Runde",
+    freshCircle: "Ein neuer Kreis", waitingForGems: "Bereit für die erste Runde", needFriend: "Lade mindestens einen Freund ein. Dann kann der Admin die erste Runde starten.", circleReady: "Dein Kreis ist bereit. Der Admin kann die erste Runde starten.", startRound: "Runde starten", adminStarts: "Der Admin startet die Runde.",
+    submit: "Hinzufügen", rate: "Reagieren", revealPhase: "Ergebnisse", choosing: "Song auswählen", listening: "Hören und reagieren", revealWhenClosed: "Ergebnisse sehen", utcCountdown: "Verbleibende Zeit", submissionPhase: "Deinen Song hinzufügen", yourGemIn: "Dein Song ist hinzugefügt.", whatsYourGem: "Welchen Song möchtest du teilen?", swapAnytime: "Du kannst ihn ändern, bis die Zeit abläuft.", shareTrack: "Füge einen Spotify-Track, ein Album oder ein YouTube-Video hinzu. Der Song bleibt verborgen, bis alle hören können.", pasteMusic: "Spotify- oder YouTube-Link einfügen", pasteNewMusic: "Neuen Spotify- oder YouTube-Link einfügen", submitGem: "Song hinzufügen", swapGem: "Song ändern", needGem: "Suchst du einen Song? Finde ihn auf", pasteLink: "und füge den Link hier ein.", currentLinkHidden: "Dein Song ist für den Kreis verborgen.", songAdded: "Song hinzugefügt", choosingSong: "Song wird ausgewählt…", allSongsIn: "Alle haben einen Song hinzugefügt.", openRating: "Du kannst das Hören jetzt starten.", endChoosing: "Hören starten",
+    gemsUnlocked: "Songs sind bereit", listenWithIntention: "Hören, dann reagieren.", ratingDescription: "Öffne jeden Song, bevor du reagierst. Auf deinen eigenen Song kannst du nicht reagieren.", circleRatings: "Reaktionen", allReactionsIn: "Alle haben reagiert.", revealResultsNow: "Du kannst die Ergebnisse jetzt zeigen.", endRating: "Ergebnisse zeigen", roundComplete: "Runde beendet", brightestGems: "Favoriten im Kreis", revealDescription: "Jeder Song und jede Reaktion – gespeichert für euren Kreis.", openSong: "Song öffnen", points: "Pkt.", startNextRound: "Nächste Runde starten", vault: "Eure Musikgeschichte", listeningHistory: "Vergangene Runden", noHistory: "Abgeschlossene Runden erscheinen hier.",
+    profileSetupTitle: "Wähle deinen Namen", profileSetupDescription: "So erkennt dich dein Kreis. Du kannst ihn später nicht ändern.", finishSetup: "Einrichtung abschließen", loading: "Gems wird geladen…",
+    rated: "Bewertet", openPlayer: "Player zum Hören öffnen", reactionsUnlock: "Danach kannst du reagieren", openOriginal: "Original öffnen auf", ownSong: "Das ist dein Song. Hör ihn gern an, aber die Reaktionen sind für deinen Kreis.", openBeforeReacting: "Öffne diesen Song, bevor du reagierst.",
+  },
+} as const;
+
+function LanguageToggle({ language, onChange, compact = false }: { language: Language; onChange: (language: Language) => void; compact?: boolean }) {
+  const text = ui[language];
+  return <button className={`language-toggle ${compact ? "compact" : ""}`} type="button" onClick={() => onChange(language === "en" ? "de" : "en")} aria-label={text.languageLabel}>{text.language}</button>;
+}
+
 const supabase = createClient();
 
 function phaseOf(round: Round | null) {
@@ -114,12 +167,17 @@ function phaseOf(round: Round | null) {
   return "reveal" as const;
 }
 
-function countdown(target?: string) {
+function countdown(target?: string, language: Language = "en") {
   if (!target) return "";
   const ms = Math.max(0, new Date(target).getTime() - Date.now());
   const days = Math.floor(ms / 86400000);
   const hours = Math.floor((ms % 86400000) / 3600000);
   const minutes = Math.floor((ms % 3600000) / 60000);
+  if (language === "de") {
+    if (days) return `${days} T ${hours} Std. übrig`;
+    if (hours) return `${hours} Std. ${minutes} Min. übrig`;
+    return `${minutes} Min. übrig`;
+  }
   if (days) return `${days}d ${hours}h left`;
   if (hours) return `${hours}h ${minutes}m left`;
   return `${minutes}m left`;
@@ -179,10 +237,11 @@ function Notice({ message, clear }: { message: string; clear: () => void }) {
   );
 }
 
-function AuthScreen() {
+function AuthScreen({ language, setLanguage }: { language: Language; setLanguage: (language: Language) => void }) {
   const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const text = ui[language];
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -198,7 +257,7 @@ function AuthScreen() {
           redirectTo: `${location.origin}`,
         });
         if (error) throw error;
-        setMessage("Password reset link sent. Check your inbox.");
+        setMessage(text.resetSent);
       } else if (mode === "signup") {
         const { data: result, error } = await supabase.auth.signUp({
           email,
@@ -207,13 +266,13 @@ function AuthScreen() {
         });
         if (error) throw error;
         if (!result.user) throw new Error("Account could not be created.");
-        setMessage(result.session ? "Welcome to Gems." : "Check your email to confirm your account, then sign in.");
+        setMessage(result.session ? "Welcome to Gems." : text.signedUp);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Something went wrong.");
+      setMessage(error instanceof Error ? error.message : text.somethingWrong);
     } finally {
       setBusy(false);
     }
@@ -223,44 +282,45 @@ function AuthScreen() {
     <main className="auth-shell">
       <section className="auth-story">
         <Logo />
+        <LanguageToggle language={language} onChange={setLanguage} />
         <div className="story-copy">
-          <span className="eyebrow"><Sparkles size={14} /> Your best finds, together</span>
-          <h1>Trade songs.<br />Find <em>gems.</em></h1>
-          <p>A private listening ritual for the people whose taste you trust. One song each. A shared rhythm. No algorithms.</p>
+          <span className="eyebrow"><Sparkles size={14} /> {text.authEyebrow}</span>
+          <h1>{text.authTitle}</h1>
+          <p>{text.authDescription}</p>
         </div>
         <div className="cycle-preview">
-          <div><span>01</span><strong>Share</strong><small>Choose privately</small></div>
+          <div><span>01</span><strong>{text.share}</strong><small>{text.shareHint}</small></div>
           <i />
-          <div><span>02</span><strong>Listen</strong><small>React together</small></div>
+          <div><span>02</span><strong>{text.listen}</strong><small>{text.listenHint}</small></div>
           <i />
-          <div><span>03</span><strong>Reveal</strong><small>Forever saved</small></div>
+          <div><span>03</span><strong>{text.reveal}</strong><small>{text.revealHint}</small></div>
         </div>
       </section>
       <section className="auth-panel">
         <div className="auth-card">
-          <span className="mobile-logo"><Logo /></span>
-          <p className="kicker">{mode === "signup" ? "Start a listening circle" : mode === "reset" ? "Find your way back" : "Welcome back"}</p>
-          <h2>{mode === "signup" ? "Create your account" : mode === "reset" ? "Reset your password" : "Sign in to Gems"}</h2>
-          <p className="muted">{mode === "signup" ? "Choose carefully — your nickname stays with you." : "Your next discovery is waiting."}</p>
+          <div className="auth-card-head"><span className="mobile-logo"><Logo /></span><LanguageToggle language={language} onChange={setLanguage} compact /></div>
+          <p className="kicker">{mode === "signup" ? text.signupKicker : mode === "reset" ? text.resetKicker : text.welcome}</p>
+          <h2>{mode === "signup" ? text.signupTitle : mode === "reset" ? text.resetTitle : text.signInTitle}</h2>
+          <p className="muted">{mode === "signup" ? text.signupDescription : mode === "reset" ? text.resetDescription : text.signInDescription}</p>
           <form onSubmit={submit} className="form-stack">
             {mode === "signup" && (
-              <label>Nickname<input name="nickname" minLength={2} maxLength={32} required placeholder="e.g. velvetears" /></label>
+              <label>{text.nickname}<input name="nickname" minLength={2} maxLength={32} required placeholder="e.g. velvetears" /></label>
             )}
-            <label>Email<input name="email" type="email" required placeholder="you@example.com" /></label>
+            <label>{text.email}<input name="email" type="email" required placeholder="you@example.com" /></label>
             {mode !== "reset" && (
-              <label>Password<input name="password" type="password" minLength={8} required placeholder="At least 8 characters" /></label>
+              <label>{text.password}<input name="password" type="password" minLength={8} required placeholder={text.passwordPlaceholder} /></label>
             )}
-            {mode === "login" && <button type="button" className="text-button align-right" onClick={() => setMode("reset")}>Forgot password?</button>}
+            {mode === "login" && <button type="button" className="text-button align-right" onClick={() => setMode("reset")}>{text.forgotPassword}</button>}
             <button className="primary-button" disabled={busy}>
               {busy && <LoaderCircle className="spin" size={17} />}
-              {mode === "signup" ? "Create account" : mode === "reset" ? "Send reset link" : "Sign in"}
+              {mode === "signup" ? text.createAccount : mode === "reset" ? text.sendResetLink : text.signIn}
               {!busy && <ChevronRight size={17} />}
             </button>
           </form>
           {message && <p className="form-message">{message}</p>}
           <div className="auth-switch">
-            {mode === "login" ? <>New here? <button onClick={() => setMode("signup")}>Create an account</button></> :
-              <>Already have an account? <button onClick={() => setMode("login")}>Sign in</button></>}
+            {mode === "login" ? <>{text.newHere} <button onClick={() => setMode("signup")}>{text.createAccount}</button></> :
+              <>{text.alreadyHaveAccount} <button onClick={() => setMode("login")}>{text.signIn}</button></>}
           </div>
         </div>
       </section>
@@ -268,7 +328,7 @@ function AuthScreen() {
   );
 }
 
-function GroupSetup({ onDone }: { onDone: () => void }) {
+function GroupSetup({ onDone, language, setLanguage }: { onDone: () => void; language: Language; setLanguage: (language: Language) => void }) {
   const [tab, setTab] = useState<"create" | "join">("create");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(() => {
@@ -277,6 +337,7 @@ function GroupSetup({ onDone }: { onDone: () => void }) {
     sessionStorage.removeItem("gems-invite-result");
     return result;
   });
+  const text = ui[language];
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -298,11 +359,11 @@ function GroupSetup({ onDone }: { onDone: () => void }) {
           exact_group_name: String(data.get("name") || "").trim(),
         });
         if (error) throw error;
-        setMessage("Request sent. The group admin will let you in.");
+        setMessage(text.requestSent);
         onDone();
       }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not continue.");
+      setMessage(error instanceof Error ? error.message : text.couldNotContinue);
     } finally {
       setBusy(false);
     }
@@ -311,18 +372,19 @@ function GroupSetup({ onDone }: { onDone: () => void }) {
   return (
     <div className="setup-wrap">
       <div className="setup-card">
+        <div className="setup-card-head"><span /><LanguageToggle language={language} onChange={setLanguage} compact /></div>
         <span className="gem-orbit"><Gem size={30} /></span>
-        <p className="kicker">Find your people</p>
-        <h2>Start sharing gems</h2>
-        <p className="muted">Create a new listening circle or join one by its exact name.</p>
+        <p className="kicker">{text.setupKicker}</p>
+        <h2>{text.setupTitle}</h2>
+        <p className="muted">{text.setupDescription}</p>
         <div className="tabs">
-          <button className={tab === "create" ? "active" : ""} onClick={() => setTab("create")}><Plus size={16} /> Create</button>
-          <button className={tab === "join" ? "active" : ""} onClick={() => setTab("join")}><Users size={16} /> Join</button>
+          <button className={tab === "create" ? "active" : ""} onClick={() => setTab("create")}><Plus size={16} /> {text.create}</button>
+          <button className={tab === "join" ? "active" : ""} onClick={() => setTab("join")}><Users size={16} /> {text.join}</button>
         </div>
         <form onSubmit={submit} className="form-stack">
-          <label>Group name<input name="name" required minLength={2} maxLength={80} placeholder={tab === "create" ? "Sunday Selects" : "Enter the exact group name"} /></label>
-          {tab === "create" && <label>House rules <span>(optional)</span><textarea name="rules" maxLength={5000} placeholder="No repeats. No guilty pleasures. Surprise us." /></label>}
-          <button className="primary-button" disabled={busy}>{busy ? <LoaderCircle className="spin" size={17} /> : tab === "create" ? <Gem size={17} /> : <Users size={17} />}{tab === "create" ? "Create group" : "Request to join"}</button>
+          <label>{text.circleName}<input name="name" required minLength={2} maxLength={80} placeholder={tab === "create" ? "Sunday Selects" : text.exactCircleName} /></label>
+          {tab === "create" && <label>{text.rules} <span>({text.optional})</span><textarea name="rules" maxLength={5000} placeholder="No repeats. No guilty pleasures. Surprise us." /></label>}
+          <button className="primary-button" disabled={busy}>{busy ? <LoaderCircle className="spin" size={17} /> : tab === "create" ? <Gem size={17} /> : <Users size={17} />}{tab === "create" ? text.createCircle : text.requestJoin}</button>
         </form>
         {message && <p className="form-message">{message}</p>}
       </div>
@@ -609,65 +671,68 @@ function PlatformAdminPanel({ close }: { close: () => void }) {
   );
 }
 
-function HomePage({ start }: { start: () => void }) {
+function HomePage({ start, language }: { start: () => void; language: Language }) {
+  const text = ui[language];
   return (
     <section className="home-page">
-      <span className="eyebrow"><Sparkles size={14} /> Music discovery with people, not feeds</span>
-      <h1>Turn the songs you love into a shared ritual.</h1>
-      <p>Gems gives a small, private circle room to choose intentionally, listen closely, and build a lasting soundtrack together—without rankings appearing before everyone has had their say.</p>
+      <span className="eyebrow"><Sparkles size={14} /> {text.homeEyebrow}</span>
+      <h1>{text.homeTitle}</h1>
+      <p>{text.homeDescription}</p>
       <div className="home-principles">
-        <article><span>01</span><h2>Choose privately</h2><p>Each person brings one musical find. The surprise stays sealed until the listening interval begins.</p></article>
-        <article><span>02</span><h2>Listen together</h2><p>Open every gem, react with a shared language, and give each choice genuine attention.</p></article>
-        <article><span>03</span><h2>Keep what matters</h2><p>Reveal the circle’s favorites and preserve every round as a collective musical memory.</p></article>
+        <article><span>01</span><h2>{text.choosePrivately}</h2><p>{text.choosePrivatelyText}</p></article>
+        <article><span>02</span><h2>{text.listenTogether}</h2><p>{text.listenTogetherText}</p></article>
+        <article><span>03</span><h2>{text.keepWhatMatters}</h2><p>{text.keepWhatMattersText}</p></article>
       </div>
-      <button className="primary-button compact" onClick={start}><Gem size={16} /> Go to the current round</button>
+      <button className="primary-button compact" onClick={start}><Gem size={16} /> {text.goToRound}</button>
     </section>
   );
 }
 
-function EmptyRound({ isAdmin, members, start }: { isAdmin: boolean; members: Member[]; start: () => void }) {
+function EmptyRound({ isAdmin, members, start, language }: { isAdmin: boolean; members: Member[]; start: () => void; language: Language }) {
+  const text = ui[language];
   return (
     <section className="empty-state">
       <div className="empty-gem"><Gem size={38} /></div>
-      <span className="eyebrow">A fresh circle</span>
-      <h2>Waiting for the first gems…</h2>
-      <p>{members.length < 2 ? "Invite at least one friend, then your first listening ritual can begin." : "Your circle is ready. Start the first round when everyone is listening."}</p>
+      <span className="eyebrow">{text.freshCircle}</span>
+      <h2>{text.waitingForGems}</h2>
+      <p>{members.length < 2 ? text.needFriend : text.circleReady}</p>
       <div className="member-bubbles">{members.map((member) => <span key={member.id} title={member.users?.nickname}>{member.users?.nickname?.slice(0, 1).toUpperCase()}</span>)}</div>
-      {isAdmin && <button className="primary-button compact" disabled={members.length < 2} onClick={start}><Sparkles size={17} /> Start round</button>}
-      {!isAdmin && <small>The group admin will start the round.</small>}
+      {isAdmin && <button className="primary-button compact" disabled={members.length < 2} onClick={start}><Sparkles size={17} /> {text.startRound}</button>}
+      {!isAdmin && <small>{text.adminStarts}</small>}
     </section>
   );
 }
 
-function SongCard({ submission, rating, onRate, isOwn }: { submission: Submission; rating?: Emoji; onRate: (emoji: Emoji) => void; isOwn: boolean }) {
+function SongCard({ submission, rating, onRate, isOwn, language }: { submission: Submission; rating?: Emoji; onRate: (emoji: Emoji) => void; isOwn: boolean; language: Language }) {
   const media = provider(submission.song_url);
   const [opened, setOpened] = useState(false);
+  const text = ui[language];
   return (
     <article className="song-card">
       <div className="song-heading">
         <div className="music-icon"><Music2 size={19} /></div>
         <div><strong>{submission.title || `${submission.users?.nickname || "A group member"}’s gem`}</strong><small>{submission.artist || media?.name || "Music link"} · chosen by {submission.users?.nickname}</small></div>
-        {rating && <span className="rated-mark"><Check size={13} /> Rated</span>}
+        {rating && <span className="rated-mark"><Check size={13} /> {text.rated}</span>}
       </div>
-      {!opened ? <button className="listen-gate" onClick={() => setOpened(true)}><Play size={22} fill="currentColor" /><span><strong>Open player to listen</strong><small>Reactions unlock after this click</small></span></button> :
+      {!opened ? <button className="listen-gate" onClick={() => setOpened(true)}><Play size={22} fill="currentColor" /><span><strong>{text.openPlayer}</strong><small>{text.reactionsUnlock}</small></span></button> :
         media ? <iframe src={media.embed} title={`${media.name} player`} allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" /> :
-          <a className="external-song" href={submission.song_url} target="_blank" rel="noreferrer">Open song <ChevronRight size={15} /></a>}
+          <a className="external-song" href={submission.song_url} target="_blank" rel="noreferrer">{text.openSong} <ChevronRight size={15} /></a>}
       <a className="source-link" href={submission.song_url} target="_blank" rel="noopener noreferrer" onClick={() => setOpened(true)}>
-        Open the original on {media?.name || "its music site"} <ChevronRight size={13} />
+        {text.openOriginal} {media?.name || "its music site"} <ChevronRight size={13} />
       </a>
-      {isOwn ? <p className="own-submission-note">This is your gem — listen, but leave the reactions to your circle.</p> : <div className="rating-row">
+      {isOwn ? <p className="own-submission-note">{text.ownSong}</p> : <div className="rating-row">
         {ratingOptions.map((option) => (
           <button key={option.emoji} disabled={!opened} className={rating === option.emoji ? "selected" : ""} onClick={() => onRate(option.emoji)} title={opened ? `${option.label} · ${option.points} points` : "Open the song before rating"}>
             <span>{option.emoji}</span><small>{option.points}pt</small>
           </button>
         ))}
       </div>}
-      {!isOwn && !opened && <small className="rating-lock-note">Open this song before choosing a reaction.</small>}
+      {!isOwn && !opened && <small className="rating-lock-note">{text.openBeforeReacting}</small>}
     </article>
   );
 }
 
-function Dashboard({ session }: { session: Session }) {
+function Dashboard({ session, language, setLanguage }: { session: Session; language: Language; setLanguage: (language: Language) => void }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
   const [selectedId, setSelectedId] = useState("");
@@ -688,6 +753,7 @@ function Dashboard({ session }: { session: Session }) {
   const [view, setView] = useState<"home" | "round" | "history">("round");
   const [expandedRound, setExpandedRound] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
+  const text = ui[language];
 
   const loadGroups = useCallback(async () => {
     const { data: me } = await supabase.from("users").select("*").eq("id", session.user.id).maybeSingle();
@@ -910,12 +976,12 @@ function Dashboard({ session }: { session: Session }) {
     }
   }
 
-  if (loading) return <div className="full-loader"><Gem className="pulse" size={34} /><span>Polishing your gems…</span></div>;
-  if (!profile) return <ProfileRecovery session={session} onDone={loadGroups} />;
+  if (loading) return <div className="full-loader"><Gem className="pulse" size={34} /><span>{text.loading}</span></div>;
+  if (!profile) return <ProfileRecovery session={session} onDone={loadGroups} language={language} setLanguage={setLanguage} />;
   if (!groups.length) return (
     <div className="app-bg">
-      <header className="topbar"><Logo /><div className="user-menu"><span>{profile.nickname}</span><button onClick={() => supabase.auth.signOut()}><LogOut size={17} /></button></div></header>
-      <GroupSetup onDone={loadGroups} />
+      <header className="topbar"><Logo /><div className="user-menu"><LanguageToggle language={language} onChange={setLanguage} compact /><span>{profile.nickname}</span><button onClick={() => supabase.auth.signOut()}><LogOut size={17} /></button></div></header>
+      <GroupSetup language={language} setLanguage={setLanguage} onDone={loadGroups} />
     </div>
   );
 
@@ -931,11 +997,12 @@ function Dashboard({ session }: { session: Session }) {
       <header className="topbar">
         <Logo onClick={() => setView("home")} />
         <nav>
-          <button className={view === "home" ? "active" : ""} onClick={() => setView("home")}><House size={16} /> Home</button>
-          <button className={view === "round" ? "active" : ""} onClick={() => setView("round")}><Gem size={16} /> Current round</button>
-          <button className={view === "history" ? "active" : ""} onClick={() => setView("history")}><History size={16} /> History</button>
+          <button className={view === "home" ? "active" : ""} onClick={() => setView("home")}><House size={16} /> {text.home}</button>
+          <button className={view === "round" ? "active" : ""} onClick={() => setView("round")}><Gem size={16} /> {text.currentRound}</button>
+          <button className={view === "history" ? "active" : ""} onClick={() => setView("history")}><History size={16} /> {text.history}</button>
         </nav>
         <div className="user-menu">
+          <LanguageToggle language={language} onChange={setLanguage} compact />
           <span className="avatar">{profile.nickname.slice(0, 1).toUpperCase()}</span>
           <span>{profile.nickname}</span>
           <span className="streak"><Flame size={15} /> {profile.streak}</span>
@@ -948,18 +1015,18 @@ function Dashboard({ session }: { session: Session }) {
       {showProfile && <UserPanel profile={profile} close={() => setShowProfile(false)} />}
       {showAdmin && group && <AdminPanel group={group} members={members} rounds={rounds} submissions={submissions} close={() => setShowAdmin(false)} refresh={() => { loadGroups(); loadGroup(); }} notify={setNotice} />}
       {showPlatformAdmin && <PlatformAdminPanel close={() => setShowPlatformAdmin(false)} />}
-      {showGroupSetup && <div className="modal-backdrop"><div className="group-modal"><button className="modal-close" onClick={() => setShowGroupSetup(false)}><X size={18} /></button><GroupSetup onDone={() => { setShowGroupSetup(false); loadGroups(); }} /></div></div>}
+      {showGroupSetup && <div className="modal-backdrop"><div className="group-modal"><button className="modal-close" onClick={() => setShowGroupSetup(false)}><X size={18} /></button><GroupSetup language={language} setLanguage={setLanguage} onDone={() => { setShowGroupSetup(false); loadGroups(); }} /></div></div>}
       <main className="dashboard">
         <aside>
-          <p className="sidebar-label">Your circles</p>
-          {groups.map((item) => <button key={item.id} className={item.id === selectedId ? "group-link active" : "group-link"} onClick={() => setSelectedId(item.id)}><span>{item.name.slice(0, 1)}</span><div><strong>{item.name}</strong><small>{item.id === selectedId ? `${approved.length} members` : "Listening circle"}</small></div></button>)}
-          <button className="new-group" onClick={() => setShowGroupSetup(true)}><Plus size={16} /> New circle</button>
+          <p className="sidebar-label">{text.yourCircles}</p>
+          {groups.map((item) => <button key={item.id} className={item.id === selectedId ? "group-link active" : "group-link"} onClick={() => setSelectedId(item.id)}><span>{item.name.slice(0, 1)}</span><div><strong>{item.name}</strong><small>{item.id === selectedId ? `${approved.length} ${text.members}` : text.listeningCircle}</small></div></button>)}
+          <button className="new-group" onClick={() => setShowGroupSetup(true)}><Plus size={16} /> {text.newCircle}</button>
         </aside>
         <div className="main-column">
-          {view === "home" && <HomePage start={() => setView("round")} />}
+          {view === "home" && <HomePage start={() => setView("round")} language={language} />}
           {view !== "home" && <section className="group-hero">
             <div>
-              <span className="eyebrow"><Gem size={13} /> Listening circle</span>
+              <span className="eyebrow"><Gem size={13} /> {text.listeningCircle}</span>
               <h1>{group?.name}</h1>
               {group?.rules && <p>“{group.rules}”</p>}
             </div>
@@ -987,99 +1054,114 @@ function Dashboard({ session }: { session: Session }) {
             </section>
           )}
 
-          {view === "round" && phase === "empty" && <EmptyRound isAdmin={isAdmin} members={approved} start={startRound} />}
+          {view === "round" && phase === "empty" && <EmptyRound isAdmin={isAdmin} members={approved} start={startRound} language={language} />}
 
           {view === "round" && phase !== "empty" && (
             <section className="round-status">
-              <div className={`phase-step ${phase === "submit" ? "active" : "done"}`}><span>{phase === "submit" ? "1" : <Check size={15} />}</span><div><strong>Submit</strong><small>Choosing interval</small></div></div>
+              <div className={`phase-step ${phase === "submit" ? "active" : "done"}`}><span>{phase === "submit" ? "1" : <Check size={15} />}</span><div><strong>{text.submit}</strong><small>{text.choosing}</small></div></div>
               <i />
-              <div className={`phase-step ${phase === "rate" ? "active" : phase === "reveal" ? "done" : ""}`}><span>{phase === "reveal" ? <Check size={15} /> : "2"}</span><div><strong>Rate</strong><small>Listening interval</small></div></div>
+              <div className={`phase-step ${phase === "rate" ? "active" : phase === "reveal" ? "done" : ""}`}><span>{phase === "reveal" ? <Check size={15} /> : "2"}</span><div><strong>{text.rate}</strong><small>{text.listening}</small></div></div>
               <i />
-              <div className={`phase-step ${phase === "reveal" ? "active" : ""}`}><span>3</span><div><strong>Reveal</strong><small>When ratings close</small></div></div>
-              {phase !== "reveal" && <div className="countdown"><Clock3 size={16} /><strong>{countdown(phaseTarget)}</strong><small>UTC countdown</small></div>}
+              <div className={`phase-step ${phase === "reveal" ? "active" : ""}`}><span>3</span><div><strong>{text.revealPhase}</strong><small>{text.revealWhenClosed}</small></div></div>
+              {phase !== "reveal" && <div className="countdown"><Clock3 size={16} /><strong>{countdown(phaseTarget, language)}</strong><small>{text.utcCountdown}</small></div>}
             </section>
           )}
 
           {view === "round" && phase === "submit" && (
             <section className="content-card submit-card">
-              <div className="section-title"><div><span className="eyebrow">Submission phase</span><h2>{mySubmission ? "Your gem is in." : "What’s your gem?"}</h2><p>{mySubmission ? "You can swap it anytime before the countdown ends." : "Share one track or album. Nobody sees what it is until rating begins."}</p></div><ProgressRing value={currentSubmissions.length} total={approved.length} label="submitted" /></div>
+              <div className="section-title"><div><span className="eyebrow">{text.submissionPhase}</span><h2>{mySubmission ? text.yourGemIn : text.whatsYourGem}</h2><p>{mySubmission ? text.swapAnytime : text.shareTrack}</p></div><ProgressRing value={currentSubmissions.length} total={approved.length} label={text.submit.toLowerCase()} /></div>
               <form onSubmit={saveSubmission} className="song-form">
                 <Music2 size={18} />
-                <input value={songUrl} onChange={(e) => setSongUrl(e.target.value)} placeholder={mySubmission ? "Paste a new Spotify or YouTube link to swap" : "Paste a Spotify or YouTube link"} required />
-                <button>{mySubmission ? "Swap gem" : "Submit gem"} <ChevronRight size={16} /></button>
+                <input value={songUrl} onChange={(e) => setSongUrl(e.target.value)} placeholder={mySubmission ? text.pasteNewMusic : text.pasteMusic} required />
+                <button>{mySubmission ? text.swapGem : text.submitGem} <ChevronRight size={16} /></button>
               </form>
-              <p className="provider-shortcuts">Need a gem? Browse <a href="https://open.spotify.com/" target="_blank" rel="noreferrer">Spotify</a> or <a href="https://www.youtube.com/" target="_blank" rel="noreferrer">YouTube</a>, then paste the link above.</p>
-              {mySubmission && <div className="locked-note"><Check size={16} /><span>Your current link is safely hidden from the group.</span></div>}
+              <p className="provider-shortcuts">{text.needGem} <a href="https://open.spotify.com/" target="_blank" rel="noreferrer">Spotify</a> or <a href="https://www.youtube.com/" target="_blank" rel="noreferrer">YouTube</a>, {text.pasteLink}</p>
+              {mySubmission && <div className="locked-note"><Check size={16} /><span>{text.currentLinkHidden}</span></div>}
               <div className="member-progress">
                 {approved.map((member) => {
                   const done = currentSubmissions.some((item) => item.user_id === member.user_id);
-                  return <div key={member.id} className={done ? "done" : ""}><span>{member.users?.nickname?.slice(0, 1).toUpperCase()}</span><strong>{member.users?.nickname}</strong><small>{done ? "Gem secured" : "Choosing…"}</small>{done && <Check size={14} />}</div>;
+                  return <div key={member.id} className={done ? "done" : ""}><span>{member.users?.nickname?.slice(0, 1).toUpperCase()}</span><strong>{member.users?.nickname}</strong><small>{done ? text.songAdded : text.choosingSong}</small>{done && <Check size={14} />}</div>;
                 })}
               </div>
-              {isAdmin && currentSubmissions.length === approved.length && approved.length > 0 && <div className="phase-complete-action"><div><Check size={18} /><span><strong>Every gem is in.</strong><small>You can open rating now instead of waiting for the countdown.</small></span></div><button className="primary-button compact" onClick={endCurrentPhase}>End choosing interval</button></div>}
+              {isAdmin && currentSubmissions.length === approved.length && approved.length > 0 && <div className="phase-complete-action"><div><Check size={18} /><span><strong>{text.allSongsIn}</strong><small>{text.openRating}</small></span></div><button className="primary-button compact" onClick={endCurrentPhase}>{text.endChoosing}</button></div>}
             </section>
           )}
 
           {view === "round" && phase === "rate" && (
             <section className="rating-section">
-              <div className="section-title"><div><span className="eyebrow">The gems are unlocked</span><h2>Listen with intention.</h2><p>Open every song before reacting. Nobody rates their own gem, and reactions remain changeable until time runs out.</p></div><ProgressRing value={currentRatings.length} total={eligibleRatingTotal} label="circle ratings" /></div>
+              <div className="section-title"><div><span className="eyebrow">{text.gemsUnlocked}</span><h2>{text.listenWithIntention}</h2><p>{text.ratingDescription}</p></div><ProgressRing value={currentRatings.length} total={eligibleRatingTotal} label={text.circleRatings} /></div>
               <div className="rating-legend">{ratingOptions.map((item) => <span key={item.emoji}><b>{item.emoji}</b>{item.points} pt · {item.label}</span>)}</div>
-              <div className="song-grid">{currentSubmissions.map((submission) => <SongCard key={submission.id} submission={submission} rating={myRatings.find((rating) => rating.submission_id === submission.id)?.emoji} onRate={(emoji) => rate(submission.id, emoji)} isOwn={submission.user_id === session.user.id} />)}</div>
-              {isAdmin && eligibleRatingTotal > 0 && currentRatings.length === eligibleRatingTotal && <div className="phase-complete-action"><div><Check size={18} /><span><strong>Every eligible reaction is in.</strong><small>You can reveal the results now instead of waiting for the countdown.</small></span></div><button className="primary-button compact" onClick={endCurrentPhase}>End rating interval</button></div>}
+              <div className="song-grid">{currentSubmissions.map((submission) => <SongCard key={submission.id} submission={submission} rating={myRatings.find((rating) => rating.submission_id === submission.id)?.emoji} onRate={(emoji) => rate(submission.id, emoji)} isOwn={submission.user_id === session.user.id} language={language} />)}</div>
+              {isAdmin && eligibleRatingTotal > 0 && currentRatings.length === eligibleRatingTotal && <div className="phase-complete-action"><div><Check size={18} /><span><strong>{text.allReactionsIn}</strong><small>{text.revealResultsNow}</small></span></div><button className="primary-button compact" onClick={endCurrentPhase}>{text.endRating}</button></div>}
             </section>
           )}
 
           {view === "round" && phase === "reveal" && (
             <section className="reveal-card">
-              <span className="eyebrow"><Sparkles size={14} /> Round {currentRound?.round_number} complete</span>
-              <h2>The brightest gems</h2>
-              <p>Every listen, every reaction, one shared soundtrack.</p>
+              <span className="eyebrow"><Sparkles size={14} /> {text.roundComplete}</span>
+              <h2>{text.brightestGems}</h2>
+              <p>{text.revealDescription}</p>
               <div className="podium">
-                {leaderboard.map((item, index) => <article key={item.id} className={index === 0 ? "winner" : ""}><span className="rank">{index + 1}</span><div className="cover"><Gem size={index === 0 ? 30 : 22} /></div><div><strong>{item.users?.nickname}’s gem</strong><a href={item.song_url} target="_blank" rel="noreferrer">{provider(item.song_url)?.name || "Open song"} <ChevronRight size={13} /></a><span className="reactions">{item.reactions.map((reaction) => <b key={reaction.id}>{reaction.emoji}</b>)}</span></div><strong className="score">{item.points}<small>pts</small></strong></article>)}
+                {leaderboard.map((item, index) => <article key={item.id} className={index === 0 ? "winner" : ""}><span className="rank">{index + 1}</span><div className="cover"><Gem size={index === 0 ? 30 : 22} /></div><div><strong>{item.users?.nickname}’s gem</strong><a href={item.song_url} target="_blank" rel="noreferrer">{provider(item.song_url)?.name || text.openSong} <ChevronRight size={13} /></a><span className="reactions">{item.reactions.map((reaction) => <b key={reaction.id}>{reaction.emoji}</b>)}</span></div><strong className="score">{item.points}<small>{text.points}</small></strong></article>)}
               </div>
-              {isAdmin && <button className="primary-button compact" onClick={startRound}><Sparkles size={16} /> Start the next round</button>}
+              {isAdmin && <button className="primary-button compact" onClick={startRound}><Sparkles size={16} /> {text.startNextRound}</button>}
             </section>
           )}
 
           {view === "history" && <section id="history" className="history-section history-page">
-            <div className="section-title"><div><span className="eyebrow">The vault</span><h2>Listening history</h2></div></div>
-            {rounds.filter((round) => phaseOf(round) === "reveal").length === 0 ? <div className="history-empty"><History size={24} /><span>Completed rounds will live here forever.</span></div> :
+            <div className="section-title"><div><span className="eyebrow">{text.vault}</span><h2>{text.listeningHistory}</h2></div></div>
+            {rounds.filter((round) => phaseOf(round) === "reveal").length === 0 ? <div className="history-empty"><History size={24} /><span>{text.noHistory}</span></div> :
               rounds.filter((round) => phaseOf(round) === "reveal").map((round) => {
                 const songs = submissions.filter((item) => item.round_id === round.id).map((song) => ({
                   ...song,
                   reactions: ratings.filter((rating) => rating.submission_id === song.id),
                   score: ratings.filter((rating) => rating.submission_id === song.id).reduce((sum, rating) => sum + rating.points, 0),
                 })).sort((a, b) => b.score - a.score);
-                return <div className="history-entry" key={round.id}><button className="history-row" onClick={() => setExpandedRound(expandedRound === round.id ? null : round.id)}><span><Gem size={17} /></span><div><strong>Round {round.round_number}</strong><small>{new Date(round.starts_at).toLocaleDateString("en", { month: "long", day: "numeric", year: "numeric" })}</small></div><div>{songs.length} gems</div><ChevronRight className={expandedRound === round.id ? "rotate" : ""} size={17} /></button>{expandedRound === round.id && <div className="history-detail">{songs.map((song, index) => <div key={song.id}><span>#{index + 1}</span>{song.thumbnail_url ? <span className="history-art" role="img" aria-label="" style={{ backgroundImage: `url("${song.thumbnail_url}")` }} /> : <span className="mini-cover"><Music2 size={15} /></span>}<div><strong>{song.title || `${song.users?.nickname}'s gem`}</strong><small>{song.artist || song.users?.nickname}</small></div><span className="history-reactions">{song.reactions.map((reaction) => reaction.emoji).join(" ")}</span><b>{song.score} pts</b><a href={song.song_url} target="_blank" rel="noreferrer"><ChevronRight size={15} /></a></div>)}</div>}</div>;
+                return <div className="history-entry" key={round.id}><button className="history-row" onClick={() => setExpandedRound(expandedRound === round.id ? null : round.id)}><span><Gem size={17} /></span><div><strong>{text.currentRound} {round.round_number}</strong><small>{new Date(round.starts_at).toLocaleDateString(language, { month: "long", day: "numeric", year: "numeric" })}</small></div><div>{songs.length} Gems</div><ChevronRight className={expandedRound === round.id ? "rotate" : ""} size={17} /></button>{expandedRound === round.id && <div className="history-detail">{songs.map((song, index) => <div key={song.id}><span>#{index + 1}</span>{song.thumbnail_url ? <span className="history-art" role="img" aria-label="" style={{ backgroundImage: `url("${song.thumbnail_url}")` }} /> : <span className="mini-cover"><Music2 size={15} /></span>}<div><strong>{song.title || `${song.users?.nickname}'s gem`}</strong><small>{song.artist || song.users?.nickname}</small></div><span className="history-reactions">{song.reactions.map((reaction) => reaction.emoji).join(" ")}</span><b>{song.score} {text.points}</b><a href={song.song_url} target="_blank" rel="noreferrer"><ChevronRight size={15} /></a></div>)}</div>}</div>;
               })}
           </section>}
         </div>
       </main>
       <nav className="mobile-nav">
-        <button className={view === "home" ? "active" : ""} onClick={() => setView("home")}><House size={18} /><span>Home</span></button>
-        <button className={view === "round" ? "active" : ""} onClick={() => setView("round")}><Gem size={18} /><span>Round</span></button>
-        <button className={view === "history" ? "active" : ""} onClick={() => setView("history")}><History size={18} /><span>History</span></button>
-        <button onClick={() => setShowGroupSetup(true)}><Plus size={18} /><span>Circle</span></button>
-        <button onClick={() => setShowProfile(true)}><UserRound size={18} /><span>Profile</span></button>
-        {isAdmin && <button onClick={() => setShowAdmin(true)}><ShieldCheck size={18} /><span>Admin</span></button>}
+        <button className={view === "home" ? "active" : ""} onClick={() => setView("home")}><House size={18} /><span>{text.home}</span></button>
+        <button className={view === "round" ? "active" : ""} onClick={() => setView("round")}><Gem size={18} /><span>{text.currentRound}</span></button>
+        <button className={view === "history" ? "active" : ""} onClick={() => setView("history")}><History size={18} /><span>{text.history}</span></button>
+        <button onClick={() => setShowGroupSetup(true)}><Plus size={18} /><span>{text.newCircle}</span></button>
+        <button onClick={() => setShowProfile(true)}><UserRound size={18} /><span>{text.profile}</span></button>
+        {isAdmin && <button onClick={() => setShowAdmin(true)}><ShieldCheck size={18} /><span>{text.admin}</span></button>}
       </nav>
     </div>
   );
 }
 
-function ProfileRecovery({ session, onDone }: { session: Session; onDone: () => void }) {
+function ProfileRecovery({ session, onDone, language, setLanguage }: { session: Session; onDone: () => void; language: Language; setLanguage: (language: Language) => void }) {
   const [message, setMessage] = useState("");
+  const text = ui[language];
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nickname = String(new FormData(event.currentTarget).get("nickname") || "").trim();
     const { error } = await supabase.from("users").insert({ id: session.user.id, nickname });
     if (error) setMessage(error.message); else onDone();
   }
-  return <div className="app-bg"><div className="setup-wrap"><form onSubmit={submit} className="setup-card form-stack"><Logo /><h2>Choose your nickname</h2><p className="muted">This is how your circle will know you. It cannot be changed later.</p><label>Nickname<input name="nickname" minLength={2} maxLength={32} required /></label><button className="primary-button">Finish setup</button>{message && <p className="form-message">{message}</p>}</form></div></div>;
+  return <div className="app-bg"><div className="setup-wrap"><form onSubmit={submit} className="setup-card form-stack"><div className="setup-card-head"><Logo /><LanguageToggle language={language} onChange={setLanguage} compact /></div><h2>{text.profileSetupTitle}</h2><p className="muted">{text.profileSetupDescription}</p><label>{text.nickname}<input name="nickname" minLength={2} maxLength={32} required /></label><button className="primary-button">{text.finishSetup}</button>{message && <p className="form-message">{message}</p>}</form></div></div>;
 }
 
 export function GemsApp() {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
+  const [language, setLanguage] = useState<Language>("en");
+  const languageLoaded = useRef(false);
+  useEffect(() => {
+    if (!languageLoaded.current) {
+      languageLoaded.current = true;
+      const saved = localStorage.getItem("gems-language");
+      if ((saved === "de" || saved === "en") && saved !== language) {
+        const restoreLanguage = window.setTimeout(() => setLanguage(saved), 0);
+        return () => window.clearTimeout(restoreLanguage);
+      }
+    }
+    localStorage.setItem("gems-language", language);
+    document.documentElement.lang = language;
+  }, [language]);
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession));
@@ -1100,6 +1182,6 @@ export function GemsApp() {
       location.reload();
     });
   }, [session]);
-  if (session === undefined) return <div className="full-loader"><Gem className="pulse" size={34} /></div>;
-  return session ? <Dashboard session={session} /> : <AuthScreen />;
+  if (session === undefined) return <div className="full-loader"><Gem className="pulse" size={34} /><span>{ui[language].loading}</span></div>;
+  return session ? <Dashboard session={session} language={language} setLanguage={setLanguage} /> : <AuthScreen language={language} setLanguage={setLanguage} />;
 }

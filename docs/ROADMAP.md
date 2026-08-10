@@ -33,6 +33,8 @@ its status changes; do not duplicate the same item in multiple sections.
 - Cost-safe email controls and dry-run behavior when Resend is absent.
 - Admin-only production Time Machine with confirmation.
 - Development-only dummy data.
+- Plain-language English and German interface for the sign-in, circle setup,
+  and core round flow.
 - Supabase RLS and production migrations.
 - Custom production domain at `https://gems-music.com`, with the legacy Vercel
   alias retained.
@@ -61,7 +63,6 @@ its status changes; do not duplicate the same item in multiple sections.
 - Add accessible confirmation UI instead of native browser confirmation dialogs.
 - Improve user discovery with relationship context while preserving circle
   privacy.
-- Add optional localization after the English product flow is stable.
 
 ## Maintainability
 

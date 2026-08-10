@@ -26,6 +26,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .brand-button { padding: 0; border: 0; background: none; cursor: pointer; }
 .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; color: white; background: var(--green); border-radius: 10px 10px 12px 8px; transform: rotate(-3deg); }
 .brand-mark svg { transform: rotate(3deg); }
+.language-toggle { position: absolute; z-index: 2; top: 48px; right: 7vw; min-width: 40px; padding: 7px 9px; border: 1px solid rgba(255,255,255,.24); border-radius: 8px; color: #edf4ef; background: rgba(255,255,255,.08); cursor: pointer; font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+.language-toggle.compact { position: static; min-width: 36px; border-color: #cbd8d1; color: var(--green); background: #f2f7f4; }
 .eyebrow, .kicker { display: inline-flex; align-items: center; gap: 7px; color: var(--green-2); font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .muted { color: var(--muted); }
 .spin { animation: spin 1s linear infinite; }
@@ -52,6 +54,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .cycle-preview i { flex: 1; height: 1px; margin: 0 16px; background: rgba(255,255,255,.18); }
 .auth-panel { display: grid; place-items: center; padding: 48px; background: var(--paper); }
 .auth-card { width: min(100%, 430px); }
+.auth-card-head, .setup-card-head { display: flex; align-items: flex-start; justify-content: space-between; }
+.auth-card-head { min-height: 34px; margin-bottom: 28px; }
 .auth-card h2, .setup-card h2 { margin: 9px 0 10px; font-size: 34px; line-height: 1.1; letter-spacing: -.05em; }
 .auth-card > .muted, .setup-card > .muted { margin: 0 0 30px; }
 .mobile-logo { display: none; margin-bottom: 50px; }
@@ -225,6 +229,7 @@ aside { padding: 8px 12px 0 0; }
 .history-detail a { color: var(--green); }
 .setup-wrap { min-height: calc(100vh - 70px); display: grid; place-items: center; padding: 50px 20px; }
 .setup-card { width: min(100%, 520px); padding: 45px; border: 1px solid #deded7; border-radius: 18px; background: var(--paper); box-shadow: 0 20px 60px rgba(28,43,35,.07); }
+.setup-card-head { min-height: 32px; margin-bottom: 8px; }
 .setup-card .gem-orbit { margin-inline: auto; }
 .setup-card > .kicker, .setup-card > h2, .setup-card > p { display: flex; justify-content: center; text-align: center; }
 .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 28px 0 22px; padding: 4px; border-radius: 10px; background: #eeeee9; }
@@ -350,6 +355,7 @@ aside { padding: 8px 12px 0 0; }
 @media (max-width: 650px) {
   body { padding-bottom: 66px; }
   .auth-panel { padding: 28px 22px; }
+  .auth-card-head { margin-bottom: 28px; }
   .topbar { height: 62px; padding: 0 16px; }
   .topbar .user-menu > span:not(.avatar) { display: none; }
   .dashboard { padding-inline: 14px; gap: 18px; }
