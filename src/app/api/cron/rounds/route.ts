@@ -39,33 +39,38 @@ export async function GET(request: NextRequest) {
     const group = setting.groups as unknown as { id: string; name: string };
     const { data: round } = await admin.from("rounds").select("*").eq("group_id", group.id)
       .order("round_number", { ascending: false }).limit(1).maybeSingle();
+    let activeRound = round;
+    let roundStartedAutomatically = false;
 
     if (setting.auto_start_rounds && round && new Date(round.rating_ends_at).getTime() <= now) {
       const starts = new Date();
-      const { error: startError } = await admin.from("rounds").insert({
+      const { data: startedRound, error: startError } = await admin.from("rounds").insert({
         group_id: group.id,
         round_number: round.round_number + 1,
         starts_at: starts.toISOString(),
         submission_ends_at: new Date(starts.getTime() + setting.submission_interval_days * 86400000).toISOString(),
         rating_ends_at: new Date(starts.getTime() + (setting.submission_interval_days + setting.rating_interval_days) * 86400000).toISOString(),
-      });
-      if (!startError) roundsStarted++;
+      }).select("*").single();
+      if (!startError && startedRound) {
+        activeRound = startedRound;
+        roundStartedAutomatically = true;
+        roundsStarted++;
+      }
     }
 
-    if ((!setting.email_notifications_enabled && !setting.push_notifications_enabled) || !round) continue;
-    const startsAt = new Date(round.starts_at).getTime();
-    const submissionEnds = new Date(round.submission_ends_at).getTime();
-    const ratingEnds = new Date(round.rating_ends_at).getTime();
+    if ((!setting.email_notifications_enabled && !setting.push_notifications_enabled) || !activeRound) continue;
+    const submissionEnds = new Date(activeRound.submission_ends_at).getTime();
+    const ratingEnds = new Date(activeRound.rating_ends_at).getTime();
     const candidates: { type: string; enabled: boolean; subject: string; body: string; active: boolean }[] = [
-      { type: "round_started", enabled: setting.round_started_email, subject: `${group.name}: a new Gems round started`, body: "Submit one musical gem before the choosing interval closes.", active: now >= startsAt && now < submissionEnds },
-      { type: "rating_started", enabled: setting.rating_started_email, subject: `${group.name}: the gems are unlocked`, body: "Listen to every song and leave exactly one reaction.", active: now >= submissionEnds && now < ratingEnds },
+      { type: "round_started", enabled: setting.round_started_email, subject: `${group.name}: a new Gems round started`, body: "Submit one musical gem before the choosing interval closes.", active: roundStartedAutomatically },
+      { type: "rating_started", enabled: setting.rating_started_email, subject: `${group.name}: the gems are unlocked`, body: "Listen to every song and leave exactly one reaction.", active: now >= submissionEnds && now - submissionEnds <= 24 * 3600000 && now < ratingEnds },
       { type: "streak_warning", enabled: setting.streak_warning_email, subject: `${group.name}: your streak is in danger`, body: "Finish your ratings before the interval closes.", active: ratingEnds - now > 0 && ratingEnds - now <= 24 * 3600000 },
     ];
     const { data: members } = await admin.from("group_members").select("user_id").eq("group_id", group.id).eq("status", "approved");
     for (const candidate of candidates.filter((item) => item.enabled && item.active)) {
       for (const member of members || []) {
         const { data: existing } = await admin.from("notification_log").select("id")
-          .eq("round_id", round.id).eq("notification_type", candidate.type).eq("recipient_id", member.user_id).maybeSingle();
+          .eq("round_id", activeRound.id).eq("notification_type", candidate.type).eq("recipient_id", member.user_id).maybeSingle();
         if (existing) continue;
         const { data: user } = await admin.auth.admin.getUserById(member.user_id);
         if (!user.user?.email) continue;
@@ -99,7 +104,7 @@ export async function GET(request: NextRequest) {
         }
         if (delivered) {
           await admin.from("notification_log").insert({
-            group_id: group.id, round_id: round.id, notification_type: candidate.type,
+            group_id: group.id, round_id: activeRound.id, notification_type: candidate.type,
             recipient_id: member.user_id, provider_id: providerId,
           });
         }

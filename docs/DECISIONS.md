@@ -4,9 +4,20 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-08-10 — Manual round events deliver immediately without a backlog
+
+**Status:** Accepted; supersedes the phase-delivery portion of the daily-check decision below
+
+When an approved circle admin starts a round or finishes choosing early, a
+protected server route sends the enabled email event immediately and records
+each successful recipient delivery. The route accepts only a newly started
+phase, so enabling email later cannot turn historical active phases into a
+catch-up broadcast. Vercel's daily Cron remains for automatic round starts,
+the first-day deadline fallback, and streak warnings.
+
 ## 2026-08-10 — Free-tier email notifications use a daily scheduled check
 
-**Status:** Accepted
+**Status:** Superseded in part by the immediate manual-event decision above
 
 Vercel Cron calls the protected notification route once daily at 12:00 UTC.
 Event eligibility spans the relevant round phase, and notification-log

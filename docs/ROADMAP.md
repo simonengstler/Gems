@@ -46,8 +46,8 @@ its status changes; do not duplicate the same item in multiple sections.
 
 - Add an automated test foundation for phase calculation, URL parsing, scoring,
   RLS-sensitive workflows, and critical UI flows.
-- Verify the daily Vercel Cron invocation and its logs after the first
-  production day with a configured Resend sender.
+- Verify immediate manual event delivery plus the daily Vercel Cron fallback
+  and its logs after the first production day with a configured Resend sender.
 - Add a production smoke-test script that checks HTTP availability, cloud
   Supabase configuration, authentication CORS, and absence of localhost URLs.
 - Add error reporting or lightweight observability that stays within free-tier

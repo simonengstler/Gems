@@ -59,7 +59,8 @@ Call `GET /api/cron/rounds` on a regular schedule. In production, provide
 `Authorization: Bearer $CRON_SECRET`. The endpoint:
 
 - starts new rounds for circles that enabled automation;
-- sends idempotent round-started, rating-started, and streak-warning messages;
+- sends idempotent automatic-round, deadline-rating fallback, and streak-warning
+  messages;
 - respects every circle’s email and push switches;
 - performs dry runs when Resend is not configured.
 
@@ -69,10 +70,12 @@ API key, and add `RESEND_API_KEY` plus a sender such as
 Vercel Production environment. Redeploy after changing environment values.
 Every circle still starts with email disabled.
 
-Vercel Hobby runs the notification route once daily. Enable a circle’s master
-email switch to send the admin a test message, then use the **Send test email
-to me** action in Circle Admin to verify delivery. Phase emails are delivered
-during their active interval rather than at an exact minute on the free plan.
+Enable a circle’s master email switch to send the admin a test message, then
+use the **Send test email to me** action in Circle Admin to verify delivery.
+Manual round starts and early transitions to listening email the circle
+immediately. Vercel Hobby runs the remaining automated checks once daily, so a
+deadline-driven fallback is not minute-precise and never sends an old phase as
+a catch-up message.
 
 Allowlisted platform operators can open the gear icon in the top-right user
 menu. The developer console shows whether the two Resend values are present,

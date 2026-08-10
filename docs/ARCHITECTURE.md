@@ -137,20 +137,28 @@ and requires user confirmation.
 
 ## Notifications
 
+The protected `POST /api/notifications/round-event` route verifies the
+requesting approved circle admin and a newly created round or phase transition,
+then sends the enabled round-start or rating-start email immediately. Its
+five-minute event window prevents an admin action from turning an old phase
+into a delayed catch-up broadcast.
+
 The cron route:
 
 - uses a service-role Supabase client;
 - starts a round only for circles with `auto_start_rounds` enabled;
-- evaluates round-start, rating-start, and 12-hour warning windows;
+- sends an automatic round-start immediately after creating that round, and
+  evaluates a first-day rating fallback plus the final 24-hour warning window;
 - respects circle email and push switches;
 - checks `notification_log` before delivery;
 - records only delivered notifications;
 - treats missing Resend configuration as a dry run.
 
 `vercel.json` schedules this route once each day at 12:00 UTC. Vercel Hobby
-may invoke it within that hour, so candidate notifications remain eligible for
-their whole choosing/rating interval and the final 24 hours before rating ends.
-The notification log keeps each recipient/event pair idempotent.
+may invoke it within that hour. Immediate manual events are not dependent on
+that schedule; the daily rating fallback is limited to its first 24 hours and
+the warning is limited to the final 24 hours, so old phases are never sent as a
+backlog. The notification log keeps each recipient/event pair idempotent.
 
 The platform-status route exposes no credentials. It requires both an
 authenticated Supabase token and a `platform_admins` allowlist row. Its Resend

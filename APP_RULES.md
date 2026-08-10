@@ -126,8 +126,12 @@ alter a round already in progress.
 - Enabling a circle’s email master switch sends the enabling admin a test email
   when delivery is configured. The admin view reports a clear configuration
   error when it is not.
-- On Vercel Hobby, the free scheduled check runs once daily, so phase emails
-  are delivered during the relevant interval rather than at an exact minute.
+- A manually started round and an admin's early transition to listening send
+  their enabled email alerts immediately through a protected server route.
+  Old phase events are never sent as a catch-up backlog.
+- The daily Vercel check remains responsible for automatic rounds, the
+  deadline-based rating fallback, and streak warnings; it is not a
+  minute-precise scheduler.
 - A platform-operator view shows reference free-tier limits plus protected live
   application counters and remaining Resend allowances calculated from Gems'
   successful-delivery log. It is not visible to ordinary users or circle
