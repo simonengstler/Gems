@@ -8,9 +8,10 @@ superseded rather than rewriting history.
 
 **Status:** Accepted
 
-The exact-next-phase Time Machine controls use the same immediate notification
-path as normal admin phase completion. Notification failures are shown to the
-admin after the shared deadline changes instead of being silently hidden.
+All Time Machine controls use the same immediate notification path as normal
+admin phase completion when they cross into listening or results. Notification
+failures are shown to the admin after the shared deadline changes instead of
+being silently hidden.
 
 ## 2026-08-11 — Results matter; streaks do not
 

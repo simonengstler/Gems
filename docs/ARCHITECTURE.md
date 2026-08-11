@@ -141,8 +141,11 @@ The protected `POST /api/notifications/round-event` route verifies the
 requesting approved circle admin and a newly created round or phase transition,
 then sends the enabled round-start, rating-start, or results-ready email
 immediately. Both normal phase-completion actions and exact Time Machine phase
-shortcuts call this route. Its five-minute event window prevents an admin
-action from turning an old phase into a delayed catch-up broadcast.
+shortcuts call this route. A Time Machine day shift that crosses a phase calls
+the same route with its explicit admin-only context. Other calls retain a
+five-minute event window, preventing an old phase from becoming a delayed
+catch-up broadcast. Runtime logs record only event type and aggregate delivery
+counts, never recipient addresses.
 
 All notification emails put `Gems · {Circle name}` in the subject and repeat
 the Circle name in the HTML body. The user-visible email categories are an

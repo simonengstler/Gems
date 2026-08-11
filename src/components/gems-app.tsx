@@ -896,16 +896,16 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
   const phaseTarget = phase === "submit" ? currentRound?.submission_ends_at : currentRound?.rating_ends_at;
   void tick;
 
-  async function sendRoundEmail(event: "round_started" | "rating_started" | "round_completed", roundId: string) {
+  async function sendRoundEmail(event: "round_started" | "rating_started" | "round_completed", roundId: string, timeMachine = false) {
     try {
       const { data } = await supabase.auth.getSession();
       const response = await fetch("/api/notifications/round-event", {
         method: "POST",
         headers: { "content-type": "application/json", authorization: `Bearer ${data.session?.access_token || ""}` },
-        body: JSON.stringify({ groupId: selectedId, roundId, event }),
+        body: JSON.stringify({ groupId: selectedId, roundId, event, timeMachine }),
       });
-      const result = await response.json() as { failed?: number };
-      return response.ok && !result.failed;
+      const result = await response.json() as { failed?: number; skipped?: boolean };
+      return response.ok && !result.failed && !result.skipped;
     } catch {
       // The daily server check remains a fallback if an immediate request is interrupted.
       return false;
@@ -954,7 +954,12 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
       provider: metadata.provider || null,
     };
     const { error } = await supabase.from("submissions").upsert(payload, { onConflict: "round_id,user_id" });
-    if (error) setNotice(error.message); else { setNotice(mySubmission ? text.songUpdated : text.songLocked); loadGroup(); }
+    if (error) setNotice(error.message);
+    else {
+      setSongUrl("");
+      setNotice(mySubmission ? text.songUpdated : text.songLocked);
+      loadGroup();
+    }
   }
 
   async function rate(submissionId: string, emoji: Emoji) {
@@ -1032,12 +1037,30 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
     if (!currentRound) return;
     if (!confirm(text.timeMachineConfirm.replace("{days}", String(days)))) return;
     const shift = (iso: string) => new Date(new Date(iso).getTime() - days * 86400000).toISOString();
-    const { error } = await supabase.from("rounds").update({
+    const shiftedRound = {
+      ...currentRound,
       starts_at: shift(currentRound.starts_at),
       submission_ends_at: shift(currentRound.submission_ends_at),
       rating_ends_at: shift(currentRound.rating_ends_at),
+    };
+    const { error } = await supabase.from("rounds").update({
+      starts_at: shiftedRound.starts_at,
+      submission_ends_at: shiftedRound.submission_ends_at,
+      rating_ends_at: shiftedRound.rating_ends_at,
     }).eq("id", currentRound.id);
-    if (error) setNotice(error.message); else { setNotice(text.timeMoved.replace("{days}", String(days))); loadGroup(); }
+    if (error) setNotice(error.message);
+    else {
+      const nextPhase = phaseOf(shiftedRound);
+      const transitionedEvent = nextPhase === "reveal" && phase !== "reveal"
+        ? "round_completed"
+        : nextPhase === "rate" && phase === "submit"
+          ? "rating_started"
+          : null;
+      const emailSent = transitionedEvent ? await sendRoundEmail(transitionedEvent, currentRound.id, true) : true;
+      const movedNotice = text.timeMoved.replace("{days}", String(days));
+      setNotice(emailSent ? movedNotice : `${movedNotice} ${text.phaseEmailFailed}`);
+      await loadGroup();
+    }
   }
 
   async function skipToNextPhase() {
@@ -1053,7 +1076,7 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
     const { error } = await supabase.from("rounds").update(update).eq("id", currentRound.id);
     if (error) setNotice(error.message);
     else {
-      const emailSent = await sendRoundEmail(phase === "submit" ? "rating_started" : "round_completed", currentRound.id);
+      const emailSent = await sendRoundEmail(phase === "submit" ? "rating_started" : "round_completed", currentRound.id, true);
       setNotice(emailSent ? text.timeMachinePhaseMoved : `${text.timeMachinePhaseMoved} ${text.phaseEmailFailed}`);
       await loadGroup();
     }

@@ -149,6 +149,8 @@ alter a round already in progress.
   from choosing to listening preserves the round's stored listening duration.
 - Jumping directly to listening or results sends the same enabled immediate
   email as the corresponding normal admin phase-completion action.
+- Moving the round forward by a number of days also sends the enabled email
+  when that move crosses into listening or results.
 - Time Machine must ask for confirmation because it changes deadlines for every
   member of the circle.
 - Dummy data is development-only. It creates fake users, submissions, and

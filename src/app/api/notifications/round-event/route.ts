@@ -31,7 +31,7 @@ function escapeHtml(value: string) {
 
 export async function POST(request: NextRequest) {
   const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  const { groupId, roundId, event } = await request.json() as { groupId?: string; roundId?: string; event?: RoundEvent };
+  const { groupId, roundId, event, timeMachine } = await request.json() as { groupId?: string; roundId?: string; event?: RoundEvent; timeMachine?: boolean };
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
   const apiKey = process.env.RESEND_API_KEY;
@@ -55,13 +55,20 @@ export async function POST(request: NextRequest) {
 
   const eventAt = new Date(event === "round_started" ? round.starts_at : event === "rating_started" ? round.submission_ends_at : round.rating_ends_at).getTime();
   const now = Date.now();
-  if (eventAt > now + 30_000 || now - eventAt > 5 * 60_000) return NextResponse.json({ error: "Only a newly started round phase can send an immediate notification." }, { status: 409 });
+  const matchesShiftedPhase = event === "rating_started"
+    ? now >= new Date(round.submission_ends_at).getTime() && now < new Date(round.rating_ends_at).getTime()
+    : event === "round_completed" && now >= new Date(round.rating_ends_at).getTime();
+  const newlyStarted = eventAt <= now + 30_000 && now - eventAt <= 5 * 60_000;
+  if (!newlyStarted && !(timeMachine && matchesShiftedPhase)) return NextResponse.json({ error: "Only a newly started round phase can send an immediate notification." }, { status: 409 });
   const eventEnabled = event === "round_started"
     ? settings?.round_started_email
     : event === "rating_started"
       ? settings?.rating_started_email
       : settings?.round_completed_email;
-  if (!settings?.email_notifications_enabled || !eventEnabled) return NextResponse.json({ ok: true, skipped: true });
+  if (!settings?.email_notifications_enabled || !eventEnabled) {
+    console.info("round email skipped", { event, reason: "disabled" });
+    return NextResponse.json({ ok: true, skipped: true });
+  }
   if (!apiKey || !from) return NextResponse.json({ error: "Email delivery is not configured." }, { status: 503 });
 
   const { data: members } = await admin.from("group_members").select("user_id").eq("group_id", groupId).eq("status", "approved");
@@ -88,5 +95,6 @@ export async function POST(request: NextRequest) {
     if (logError) failed++; else sent++;
   }
 
+  console.info("round email completed", { event, sent, failed });
   return NextResponse.json({ ok: true, sent, failed });
 }
