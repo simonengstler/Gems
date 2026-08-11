@@ -5,6 +5,16 @@ import webpush from "web-push";
 
 export const dynamic = "force-dynamic";
 
+function escapeHtml(value: string) {
+  return value.replace(/[&<>'"]/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "'": "&#39;",
+    "\"": "&quot;",
+  })[character] || character);
+}
+
 export async function GET(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
   if (process.env.NODE_ENV === "production" && (!cronSecret || request.headers.get("authorization") !== `Bearer ${cronSecret}`)) {
@@ -62,9 +72,9 @@ export async function GET(request: NextRequest) {
     const submissionEnds = new Date(activeRound.submission_ends_at).getTime();
     const ratingEnds = new Date(activeRound.rating_ends_at).getTime();
     const candidates: { type: string; enabled: boolean; subject: string; body: string; active: boolean }[] = [
-      { type: "round_started", enabled: setting.round_started_email, subject: `${group.name}: a new Gems round started`, body: "Submit one musical gem before the choosing interval closes.", active: roundStartedAutomatically },
-      { type: "rating_started", enabled: setting.rating_started_email, subject: `${group.name}: the gems are unlocked`, body: "Listen to every song and leave exactly one reaction.", active: now >= submissionEnds && now - submissionEnds <= 24 * 3600000 && now < ratingEnds },
-      { type: "streak_warning", enabled: setting.streak_warning_email, subject: `${group.name}: your streak is in danger`, body: "Finish your ratings before the interval closes.", active: ratingEnds - now > 0 && ratingEnds - now <= 24 * 3600000 },
+      { type: "round_started", enabled: setting.round_started_email, subject: `Gems · ${group.name}: new round started`, body: "Submit one musical gem before the choosing interval closes.", active: roundStartedAutomatically },
+      { type: "rating_started", enabled: setting.rating_started_email, subject: `Gems · ${group.name}: songs are ready`, body: "Listen to every song and leave exactly one reaction.", active: now >= submissionEnds && now - submissionEnds <= 24 * 3600000 && now < ratingEnds },
+      { type: "streak_warning", enabled: setting.streak_warning_email, subject: `Gems · ${group.name}: your streak is in danger`, body: "Finish your ratings before the interval closes.", active: ratingEnds - now > 0 && ratingEnds - now <= 24 * 3600000 },
     ];
     const { data: members } = await admin.from("group_members").select("user_id").eq("group_id", group.id).eq("status", "approved");
     for (const candidate of candidates.filter((item) => item.enabled && item.active)) {
@@ -83,7 +93,7 @@ export async function GET(request: NextRequest) {
               from: process.env.RESEND_FROM_EMAIL || "Gems <onboarding@resend.dev>",
               to: user.user.email,
               subject: candidate.subject,
-              html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto"><h1 style="color:#174f3d">💎 Gems</h1><h2>${candidate.subject}</h2><p>${candidate.body}</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}">Open Gems</a></p></div>`,
+              html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto"><h1 style="color:#174f3d">💎 Gems</h1><p><strong>Circle: ${escapeHtml(group.name)}</strong></p><h2>${escapeHtml(candidate.subject)}</h2><p>${candidate.body}</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://gems-music.com"}">Open Gems</a></p></div>`,
             });
             if (!result.error) { delivered = true; providerId = result.data?.id; sent++; }
           }

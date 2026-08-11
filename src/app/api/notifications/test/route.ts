@@ -40,8 +40,8 @@ export async function POST(request: NextRequest) {
   const result = await new Resend(apiKey).emails.send({
     from,
     to: auth.user.email,
-    subject: `Gems: email notifications are ready for ${group?.name || "your circle"}`,
-    html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto"><h1 style="color:#174f3d">💎 Gems</h1><h2>Email notifications are working</h2><p>This is a test for <strong>${groupName}</strong>.</p><p>New rounds and early phase changes send their enabled email alerts immediately.</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://gems-music.com"}">Open Gems</a></p></div>`,
+    subject: `Gems · ${group?.name || "your circle"}: email notifications are ready`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto"><h1 style="color:#174f3d">💎 Gems</h1><p><strong>Circle: ${groupName}</strong></p><h2>Email notifications are working</h2><p>This is a test for this Circle.</p><p>New rounds and early phase changes send their enabled email alerts immediately.</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://gems-music.com"}">Open Gems</a></p></div>`,
   });
   if (result.error) return NextResponse.json({ error: result.error.message || "Resend could not deliver the test email." }, { status: 502 });
   return NextResponse.json({ ok: true });

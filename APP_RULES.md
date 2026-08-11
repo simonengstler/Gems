@@ -132,6 +132,17 @@ alter a round already in progress.
 - The daily Vercel check remains responsible for automatic rounds, the
   deadline-based rating fallback, and streak warnings; it is not a
   minute-precise scheduler.
+- Every email subject and body identifies the affected Circle by name. There
+  are four email categories:
+
+| Email | Recipients | When it is sent |
+| --- | --- | --- |
+| Test email | The enabling/admin-testing admin | Immediately when email is enabled or the test action is used. |
+| New round | Every approved Circle member | Immediately after an admin starts a round; for automatic rounds, when the daily check creates it. |
+| Songs ready | Every approved Circle member | Immediately when an admin opens listening early; otherwise in the first daily fallback after the rating phase begins. |
+| Streak warning | Every approved Circle member | During the final 24 hours of rating, at the daily check. |
+
+  Each event is sent at most once per recipient and round.
 - A platform-operator view shows reference free-tier limits plus protected live
   application counters and remaining Resend allowances calculated from Gems'
   successful-delivery log. It is not visible to ordinary users or circle
@@ -140,8 +151,9 @@ alter a round already in progress.
 ## 7. Administrative and developer tools
 
 - Time Machine is visible only to a circle admin.
-- Time Machine can move the current round forward by 1, 5, or 12 days in local
-  and production environments.
+- Time Machine can move the current round forward by 1, 5, or 12 days, or jump
+  directly to the next phase, in local and production environments. Jumping
+  from choosing to listening preserves the round's stored listening duration.
 - Time Machine must ask for confirmation because it changes deadlines for every
   member of the circle.
 - Dummy data is development-only. It creates fake users, submissions, and

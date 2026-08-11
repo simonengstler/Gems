@@ -77,6 +77,10 @@ immediately. Vercel Hobby runs the remaining automated checks once daily, so a
 deadline-driven fallback is not minute-precise and never sends an old phase as
 a catch-up message.
 
+Every email names its Circle in both the subject and body. There are four email
+categories: an on-demand admin test, a new-round alert, a songs-ready alert,
+and a final-day streak warning. Each event is sent once per recipient and round.
+
 Allowlisted platform operators can open the gear icon in the top-right user
 menu. The developer console shows whether the two Resend values are present,
 remaining free-tier email allowances calculated from the Gems delivery log,

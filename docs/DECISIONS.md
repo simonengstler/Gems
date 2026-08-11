@@ -4,6 +4,15 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-08-11 — Email identity and phase-boundary testing are explicit
+
+**Status:** Accepted
+
+Every Gems email identifies its Circle in the subject and body, so members can
+distinguish notifications from multiple circles. Circle-admin Time Machine
+controls include confirmed shortcuts to the exact next phase; skipping choosing
+preserves the stored rating duration, while skipping rating reveals results.
+
 ## 2026-08-10 — Manual round events deliver immediately without a backlog
 
 **Status:** Accepted; supersedes the phase-delivery portion of the daily-check decision below

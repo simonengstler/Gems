@@ -6,11 +6,11 @@ type RoundEvent = "round_started" | "rating_started";
 
 const eventCopy: Record<RoundEvent, { subject: (groupName: string) => string; body: string }> = {
   round_started: {
-    subject: (groupName) => `${groupName}: a new Gems round started`,
+    subject: (groupName) => `Gems · ${groupName}: new round started`,
     body: "Submit one musical gem before the choosing interval closes.",
   },
   rating_started: {
-    subject: (groupName) => `${groupName}: the gems are unlocked`,
+    subject: (groupName) => `Gems · ${groupName}: songs are ready`,
     body: "Listen to every song and leave exactly one reaction.",
   },
 };
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       from,
       to: user.user.email,
       subject: copy.subject(group.name),
-      html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto"><h1 style="color:#174f3d">💎 Gems</h1><h2>${escapeHtml(copy.subject(group.name))}</h2><p>${copy.body}</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://gems-music.com"}">Open Gems</a></p></div>`,
+      html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto"><h1 style="color:#174f3d">💎 Gems</h1><p><strong>Circle: ${escapeHtml(group.name)}</strong></p><h2>${escapeHtml(copy.subject(group.name))}</h2><p>${copy.body}</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://gems-music.com"}">Open Gems</a></p></div>`,
     });
     if (result.error) { failed++; continue; }
     const { error: logError } = await admin.from("notification_log").insert({

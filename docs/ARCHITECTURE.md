@@ -132,8 +132,9 @@ early, it preserves the round's stored rating duration by moving
 `rating_ends_at` forward with the new phase start.
 
 Time Machine preserves the round’s configured relationship by shifting all
-three timestamps backward together. It is an admin-only production capability
-and requires user confirmation.
+three timestamps backward together. It also provides an admin-only confirmed
+shortcut to the exact next phase: choosing moves `submission_ends_at` to now
+and preserves the stored rating duration; rating moves `rating_ends_at` to now.
 
 ## Notifications
 
@@ -142,6 +143,11 @@ requesting approved circle admin and a newly created round or phase transition,
 then sends the enabled round-start or rating-start email immediately. Its
 five-minute event window prevents an admin action from turning an old phase
 into a delayed catch-up broadcast.
+
+All notification emails put `Gems · {Circle name}` in the subject and repeat
+the Circle name in the HTML body. The user-visible email categories are an
+on-demand admin test, new-round, songs-ready, and streak-warning email. The
+delivery log makes each event idempotent per recipient and round.
 
 The cron route:
 
