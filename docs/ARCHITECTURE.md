@@ -139,9 +139,10 @@ and preserves the stored rating duration; rating moves `rating_ends_at` to now.
 
 The protected `POST /api/notifications/round-event` route verifies the
 requesting approved circle admin and a newly created round or phase transition,
-then sends the enabled round-start or rating-start email immediately. Its
-five-minute event window prevents an admin action from turning an old phase
-into a delayed catch-up broadcast.
+then sends the enabled round-start, rating-start, or results-ready email
+immediately. Both normal phase-completion actions and exact Time Machine phase
+shortcuts call this route. Its five-minute event window prevents an admin
+action from turning an old phase into a delayed catch-up broadcast.
 
 All notification emails put `Gems · {Circle name}` in the subject and repeat
 the Circle name in the HTML body. The user-visible email categories are an

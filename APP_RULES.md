@@ -118,8 +118,9 @@ alter a round already in progress.
 - Enabling a circle’s email master switch sends the enabling admin a test email
   when delivery is configured. The admin view reports a clear configuration
   error when it is not.
-- A manually started round and an admin's early transition to listening send
-  their enabled email alerts immediately through a protected server route.
+- A manually started round, an admin's early transition, and a Time Machine
+  shortcut to the next phase send their enabled email alerts immediately
+  through a protected server route.
   Old phase events are never sent as a catch-up backlog.
 - The daily Vercel check remains responsible for automatic rounds and
   deadline-based listening/results fallbacks; it is not a minute-precise
@@ -146,6 +147,8 @@ alter a round already in progress.
 - Time Machine can move the current round forward by 1, 5, or 12 days, or jump
   directly to the next phase, in local and production environments. Jumping
   from choosing to listening preserves the round's stored listening duration.
+- Jumping directly to listening or results sends the same enabled immediate
+  email as the corresponding normal admin phase-completion action.
 - Time Machine must ask for confirmation because it changes deadlines for every
   member of the circle.
 - Dummy data is development-only. It creates fake users, submissions, and

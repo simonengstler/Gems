@@ -31,7 +31,7 @@ its status changes; do not duplicate the same item in multiple sections.
 - Browser push subscription and idempotent notification delivery logic.
 - Cost-safe email controls and dry-run behavior when Resend is absent.
 - Admin-only production Time Machine with confirmation and direct next-phase
-  shortcuts that preserve the listening interval.
+  shortcuts that preserve the listening interval and send phase emails.
 - Development-only dummy data.
 - Plain-language English and German interface for the sign-in, circle setup,
   and core round flow.

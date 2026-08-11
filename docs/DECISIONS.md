@@ -4,6 +4,14 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-08-11 — Time Machine phase changes are real notification events
+
+**Status:** Accepted
+
+The exact-next-phase Time Machine controls use the same immediate notification
+path as normal admin phase completion. Notification failures are shown to the
+admin after the shared deadline changes instead of being silently hidden.
+
 ## 2026-08-11 — Results matter; streaks do not
 
 **Status:** Accepted
