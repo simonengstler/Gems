@@ -105,20 +105,12 @@ alter a round already in progress.
 - Automatic round starts happen only when the circle enables automation and an
   external scheduler calls the protected cron endpoint.
 
-## 5. Streaks
-
-- A streak counts consecutive completed rounds in which a user both submitted a
-  gem and rated every required submission.
-- Streak finalization occurs when the next round is created.
-- Missing the submission or rating requirement resets the streak to zero.
-- The interface displays a flame and the current streak beside the nickname.
-
-## 6. Notifications and cost controls
+## 5. Notifications and cost controls
 
 - Browser push is opt-in for each user/device and can be disabled at the circle
   level.
 - Email delivery has a circle-level master switch that defaults to off.
-- Round-started, rating-started, and 12-hour streak-warning notifications have
+- Round-started, rating-started, and results-ready notifications have
   individual switches.
 - Notification delivery is idempotent; the same event must not be sent twice to
   the same recipient for one round.
@@ -129,9 +121,9 @@ alter a round already in progress.
 - A manually started round and an admin's early transition to listening send
   their enabled email alerts immediately through a protected server route.
   Old phase events are never sent as a catch-up backlog.
-- The daily Vercel check remains responsible for automatic rounds, the
-  deadline-based rating fallback, and streak warnings; it is not a
-  minute-precise scheduler.
+- The daily Vercel check remains responsible for automatic rounds and
+  deadline-based listening/results fallbacks; it is not a minute-precise
+  scheduler.
 - Every email subject and body identifies the affected Circle by name. There
   are four email categories:
 
@@ -140,7 +132,7 @@ alter a round already in progress.
 | Test email | The enabling/admin-testing admin | Immediately when email is enabled or the test action is used. |
 | New round | Every approved Circle member | Immediately after an admin starts a round; for automatic rounds, when the daily check creates it. |
 | Songs ready | Every approved Circle member | Immediately when an admin opens listening early; otherwise in the first daily fallback after the rating phase begins. |
-| Streak warning | Every approved Circle member | During the final 24 hours of rating, at the daily check. |
+| Results ready | Every approved Circle member | Immediately when an admin reveals results; otherwise in the first daily fallback after rating ends. |
 
   Each event is sent at most once per recipient and round.
 - A platform-operator view shows reference free-tier limits plus protected live
@@ -148,7 +140,7 @@ alter a round already in progress.
   successful-delivery log. It is not visible to ordinary users or circle
   admins. Provider reference limits must be periodically reverified.
 
-## 7. Administrative and developer tools
+## 6. Administrative and developer tools
 
 - Time Machine is visible only to a circle admin.
 - Time Machine can move the current round forward by 1, 5, or 12 days, or jump
@@ -165,12 +157,12 @@ alter a round already in progress.
 - Early phase completion is checked atomically by the database and requires
   confirmation because it changes the shared live deadline.
 
-## 8. Product boundaries
+## 7. Product boundaries
 
 - Circles are private; discovery does not expose circle membership or content.
-- User search exposes a listener profile, including streak and aggregate
-  activity visible through the requester’s existing circle access. It never
-  exposes private circle membership or content.
+- User search exposes a listener profile and aggregate activity visible through
+  the requester’s existing circle access. It never exposes private circle
+  membership or content.
 - Gems uses public provider embeds and oEmbed metadata by default. It does not
   require paid Spotify or YouTube API access for the core flow.
 - The product should remain usable on free service tiers during development and

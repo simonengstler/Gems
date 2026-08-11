@@ -60,7 +60,7 @@ without broad churn.
 
 Core tables:
 
-- `users`: profile nickname, streak, and timestamps; keyed to Supabase Auth.
+- `users`: profile nickname and timestamps; keyed to Supabase Auth.
 - `groups`: immutable circle name, rules, creator, and optional archive time.
 - `group_members`: role, approval state, approver, and membership timestamps.
 - `rounds`: sequential round number and UTC phase boundaries.
@@ -77,7 +77,7 @@ Supporting tables:
 
 Database triggers enforce updated timestamps, immutable names, membership
 limits, minimum round membership, submission/rating windows, the self-rating
-prohibition, default settings, and streak finalization. SQL functions provide
+prohibition and default settings. SQL functions provide
 safe membership checks, joining, leaving, invitation handling, limited user
 search, and atomic admin-only phase completion after all eligible participation
 is present.
@@ -121,9 +121,8 @@ Round timestamps are stored in UTC:
 3. `rating_ends_at` uses the configured 1–14 day rating interval.
 4. Reveal is derived when the rating deadline has passed.
 
-The browser derives the phase from these timestamps. Starting a new round
-finalizes the previous round's streaks. Automatic starts are not continuously
-running inside Next.js; they require calls to `/api/cron/rounds`.
+The browser derives the phase from these timestamps. Automatic starts are not
+continuously running inside Next.js; they require calls to `/api/cron/rounds`.
 
 `complete_round_phase` locks the active round, verifies circle-admin access,
 counts approved members, submissions, and eligible ratings, and advances the
@@ -146,7 +145,7 @@ into a delayed catch-up broadcast.
 
 All notification emails put `Gems · {Circle name}` in the subject and repeat
 the Circle name in the HTML body. The user-visible email categories are an
-on-demand admin test, new-round, songs-ready, and streak-warning email. The
+on-demand admin test, new-round, songs-ready, and results-ready email. The
 delivery log makes each event idempotent per recipient and round.
 
 The cron route:
@@ -154,7 +153,7 @@ The cron route:
 - uses a service-role Supabase client;
 - starts a round only for circles with `auto_start_rounds` enabled;
 - sends an automatic round-start immediately after creating that round, and
-  evaluates a first-day rating fallback plus the final 24-hour warning window;
+  evaluates first-day rating and results-ready fallbacks;
 - respects circle email and push switches;
 - checks `notification_log` before delivery;
 - records only delivered notifications;

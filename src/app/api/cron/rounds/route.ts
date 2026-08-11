@@ -71,16 +71,18 @@ export async function GET(request: NextRequest) {
     if ((!setting.email_notifications_enabled && !setting.push_notifications_enabled) || !activeRound) continue;
     const submissionEnds = new Date(activeRound.submission_ends_at).getTime();
     const ratingEnds = new Date(activeRound.rating_ends_at).getTime();
-    const candidates: { type: string; enabled: boolean; subject: string; body: string; active: boolean }[] = [
-      { type: "round_started", enabled: setting.round_started_email, subject: `Gems · ${group.name}: new round started`, body: "Submit one musical gem before the choosing interval closes.", active: roundStartedAutomatically },
-      { type: "rating_started", enabled: setting.rating_started_email, subject: `Gems · ${group.name}: songs are ready`, body: "Listen to every song and leave exactly one reaction.", active: now >= submissionEnds && now - submissionEnds <= 24 * 3600000 && now < ratingEnds },
-      { type: "streak_warning", enabled: setting.streak_warning_email, subject: `Gems · ${group.name}: your streak is in danger`, body: "Finish your ratings before the interval closes.", active: ratingEnds - now > 0 && ratingEnds - now <= 24 * 3600000 },
+    const completedRound = round && now >= new Date(round.rating_ends_at).getTime() ? round : null;
+    const candidates: { round: typeof activeRound; type: string; enabled: boolean; subject: string; body: string; active: boolean }[] = [
+      { round: activeRound, type: "round_started", enabled: setting.round_started_email, subject: `Gems · ${group.name}: new round started`, body: "Submit one musical gem before the choosing interval closes.", active: roundStartedAutomatically },
+      { round: activeRound, type: "rating_started", enabled: setting.rating_started_email, subject: `Gems · ${group.name}: songs are ready`, body: "Listen to every song and leave exactly one reaction.", active: now >= submissionEnds && now - submissionEnds <= 24 * 3600000 && now < ratingEnds },
+      { round: completedRound, type: "round_completed", enabled: setting.round_completed_email, subject: `Gems · ${group.name}: results are ready`, body: "The round is complete. See which gems your Circle loved.", active: Boolean(completedRound && now - new Date(completedRound.rating_ends_at).getTime() <= 24 * 3600000) },
     ];
     const { data: members } = await admin.from("group_members").select("user_id").eq("group_id", group.id).eq("status", "approved");
     for (const candidate of candidates.filter((item) => item.enabled && item.active)) {
+      if (!candidate.round) continue;
       for (const member of members || []) {
         const { data: existing } = await admin.from("notification_log").select("id")
-          .eq("round_id", activeRound.id).eq("notification_type", candidate.type).eq("recipient_id", member.user_id).maybeSingle();
+          .eq("round_id", candidate.round.id).eq("notification_type", candidate.type).eq("recipient_id", member.user_id).maybeSingle();
         if (existing) continue;
         const { data: user } = await admin.auth.admin.getUserById(member.user_id);
         if (!user.user?.email) continue;
@@ -114,7 +116,7 @@ export async function GET(request: NextRequest) {
         }
         if (delivered) {
           await admin.from("notification_log").insert({
-            group_id: group.id, round_id: activeRound.id, notification_type: candidate.type,
+            group_id: group.id, round_id: candidate.round.id, notification_type: candidate.type,
             recipient_id: member.user_id, provider_id: providerId,
           });
         }

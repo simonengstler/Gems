@@ -59,7 +59,7 @@ Call `GET /api/cron/rounds` on a regular schedule. In production, provide
 `Authorization: Bearer $CRON_SECRET`. The endpoint:
 
 - starts new rounds for circles that enabled automation;
-- sends idempotent automatic-round, deadline-rating fallback, and streak-warning
+- sends idempotent automatic-round, deadline-rating, and results-ready fallback
   messages;
 - respects every circle’s email and push switches;
 - performs dry runs when Resend is not configured.
@@ -79,7 +79,7 @@ a catch-up message.
 
 Every email names its Circle in both the subject and body. There are four email
 categories: an on-demand admin test, a new-round alert, a songs-ready alert,
-and a final-day streak warning. Each event is sent once per recipient and round.
+and a results-ready alert. Each event is sent once per recipient and round.
 
 Allowlisted platform operators can open the gear icon in the top-right user
 menu. The developer console shows whether the two Resend values are present,

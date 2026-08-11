@@ -80,8 +80,9 @@ investigate any migration execution error before deploying the app.
 
 ## Production deployment
 
-Deployment is a separate external action. Perform it only when the user asks
-for production delivery or the task explicitly includes it.
+Deployment is the default external action after every validated, committed
+product fix or change. Skip it only when the user explicitly asks to keep work
+local.
 
 Vercel is not reliably connected to the GitHub author identity. Do **not** use
 a normal source deployment. Build locally using Vercel Production environment

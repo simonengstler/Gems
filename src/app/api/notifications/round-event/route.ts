@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-type RoundEvent = "round_started" | "rating_started";
+type RoundEvent = "round_started" | "rating_started" | "round_completed";
 
 const eventCopy: Record<RoundEvent, { subject: (groupName: string) => string; body: string }> = {
   round_started: {
@@ -12,6 +12,10 @@ const eventCopy: Record<RoundEvent, { subject: (groupName: string) => string; bo
   rating_started: {
     subject: (groupName) => `Gems · ${groupName}: songs are ready`,
     body: "Listen to every song and leave exactly one reaction.",
+  },
+  round_completed: {
+    subject: (groupName) => `Gems · ${groupName}: results are ready`,
+    body: "The round is complete. See which gems your Circle loved.",
   },
 };
 
@@ -42,17 +46,22 @@ export async function POST(request: NextRequest) {
 
   const [{ data: membership }, { data: round }, { data: settings }, { data: group }] = await Promise.all([
     admin.from("group_members").select("role,status").eq("group_id", groupId).eq("user_id", auth.user.id).maybeSingle(),
-    admin.from("rounds").select("id,starts_at,submission_ends_at").eq("id", roundId).eq("group_id", groupId).maybeSingle(),
-    admin.from("group_settings").select("email_notifications_enabled,round_started_email,rating_started_email").eq("group_id", groupId).maybeSingle(),
+    admin.from("rounds").select("id,starts_at,submission_ends_at,rating_ends_at").eq("id", roundId).eq("group_id", groupId).maybeSingle(),
+    admin.from("group_settings").select("email_notifications_enabled,round_started_email,rating_started_email,round_completed_email").eq("group_id", groupId).maybeSingle(),
     admin.from("groups").select("name").eq("id", groupId).maybeSingle(),
   ]);
   if (membership?.role !== "admin" || membership.status !== "approved") return NextResponse.json({ error: "Only an approved circle admin can send round notifications." }, { status: 403 });
   if (!round || !group) return NextResponse.json({ error: "Round not found." }, { status: 404 });
 
-  const eventAt = new Date(event === "round_started" ? round.starts_at : round.submission_ends_at).getTime();
+  const eventAt = new Date(event === "round_started" ? round.starts_at : event === "rating_started" ? round.submission_ends_at : round.rating_ends_at).getTime();
   const now = Date.now();
   if (eventAt > now + 30_000 || now - eventAt > 5 * 60_000) return NextResponse.json({ error: "Only a newly started round phase can send an immediate notification." }, { status: 409 });
-  if (!settings?.email_notifications_enabled || (event === "round_started" ? !settings.round_started_email : !settings.rating_started_email)) return NextResponse.json({ ok: true, skipped: true });
+  const eventEnabled = event === "round_started"
+    ? settings?.round_started_email
+    : event === "rating_started"
+      ? settings?.rating_started_email
+      : settings?.round_completed_email;
+  if (!settings?.email_notifications_enabled || !eventEnabled) return NextResponse.json({ ok: true, skipped: true });
   if (!apiKey || !from) return NextResponse.json({ error: "Email delivery is not configured." }, { status: 503 });
 
   const { data: members } = await admin.from("group_members").select("user_id").eq("group_id", groupId).eq("status", "approved");

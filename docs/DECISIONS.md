@@ -4,6 +4,15 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-08-11 — Results matter; streaks do not
+
+**Status:** Accepted
+
+The streak feature, its stored profile value, round-start trigger, search
+output, and warning email are removed. A results-ready email replaces the
+warning: it is immediate when an admin reveals results and has a first-day
+daily fallback for deadline-based completion.
+
 ## 2026-08-11 — Email identity and phase-boundary testing are explicit
 
 **Status:** Accepted
@@ -15,14 +24,14 @@ preserves the stored rating duration, while skipping rating reveals results.
 
 ## 2026-08-10 — Manual round events deliver immediately without a backlog
 
-**Status:** Accepted; supersedes the phase-delivery portion of the daily-check decision below
+**Status:** Accepted; supersedes the phase-delivery portion of the daily-check decision below and superseded in part by the results-ready decision above
 
 When an approved circle admin starts a round or finishes choosing early, a
 protected server route sends the enabled email event immediately and records
 each successful recipient delivery. The route accepts only a newly started
 phase, so enabling email later cannot turn historical active phases into a
-catch-up broadcast. Vercel's daily Cron remains for automatic round starts,
-the first-day deadline fallback, and streak warnings.
+catch-up broadcast. Vercel's daily Cron remains for automatic round starts and
+the first-day deadline fallback.
 
 ## 2026-08-10 — Free-tier email notifications use a daily scheduled check
 

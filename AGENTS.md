@@ -96,8 +96,9 @@ ready and the live behavior has been checked.
   `origin/main` unless the user asks to keep it local.
 - Do not include `.env*`, `.vercel/`, build artifacts, or unrelated generated
   lockfile changes in commits.
-- Deployment is a separate external action. Deploy when the user requests it or
-  when the active task explicitly includes production delivery.
+- Deploy every validated, committed product fix or change to Vercel Production
+  unless the user explicitly asks to keep it local. A Git push alone is never a
+  deployment.
 - For a Vercel production deployment, follow `docs/OPERATIONS.md` exactly:
   pull Production values, export them before building, verify no local Supabase
   URL entered the artifact, stage a secret-free prebuilt runtime outside Git,

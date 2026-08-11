@@ -16,7 +16,6 @@ its status changes; do not duplicate the same item in multiple sections.
 - Configurable submit/rate intervals, reveal, and persistent history flow.
 - Spotify and YouTube parsing, embedded playback, metadata, and original links.
 - Five reactions with generated point values and per-user rating updates.
-- Streak calculation when a subsequent round starts.
 - Profile totals, reactions received, nickname search, and full listener
   profile drill-down within existing access.
 - Circle admin view with rules, lifecycle, invitations, notification controls,
@@ -47,7 +46,7 @@ its status changes; do not duplicate the same item in multiple sections.
 
 - Add an automated test foundation for phase calculation, URL parsing, scoring,
   RLS-sensitive workflows, and critical UI flows.
-- Verify immediate manual event delivery plus the daily Vercel Cron fallback
+- Verify immediate manual event delivery plus the daily Vercel Cron fallbacks
   and its logs after the first production day with a configured Resend sender.
 - Add a production smoke-test script that checks HTTP availability, cloud
   Supabase configuration, authentication CORS, and absence of localhost URLs.

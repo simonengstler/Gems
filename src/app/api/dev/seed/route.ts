@@ -45,7 +45,6 @@ export async function POST(request: NextRequest) {
       const { error: profileError } = await admin.from("users").insert({
         id: data.user.id,
         nickname: `${nickname}${stamp.slice(-3)}${index}`,
-        streak: index + 1,
       });
       if (profileError) throw profileError;
     }

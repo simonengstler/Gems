@@ -5,7 +5,6 @@ import {
   ChevronRight,
   Clock3,
   Copy,
-  Flame,
   Gem,
   History,
   House,
@@ -26,7 +25,7 @@ import type { Session } from "@supabase/supabase-js";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase";
 
-type Profile = { id: string; nickname: string; streak: number };
+type Profile = { id: string; nickname: string };
 type Group = {
   id: string;
   name: string;
@@ -76,7 +75,7 @@ type GroupSettings = {
   email_notifications_enabled: boolean;
   round_started_email: boolean;
   rating_started_email: boolean;
-  streak_warning_email: boolean;
+  round_completed_email: boolean;
   auto_start_rounds: boolean;
   push_notifications_enabled: boolean;
   submission_interval_days: number;
@@ -141,6 +140,7 @@ const ui = {
     circleAdministration: "Circle administration", membersAndRounds: "members · rounds", automation: "Automation", costSafeControls: "Cost-safe controls", emailNotifications: "Email notifications", emailNotificationsHelp: "Main switch — keep off in development", roundStartedEmail: "Round started email", roundStartedEmailHelp: "Ask the Circle to add a song", ratingStartedEmail: "Listening started email", ratingStartedEmailHelp: "Tell the Circle that songs are ready", streakWarningEmail: "Streak warning email", streakWarningEmailHelp: "Warn 12 hours before time ends", browserPush: "Browser notifications", browserPushHelp: "Free delivery to opted-in devices", automaticRounds: "Automatic new rounds", automaticRoundsHelp: "Start again after results", invitations: "Invitations", invitePeople: "Invite people", inviteHelp: "Private links expire after 14 days. New members still need approval.", copyInvitation: "Copy invitation", invitationCopied: "Invitation copied. It expires in 14 days.", futureRounds: "Future rounds", listeningRhythm: "Round length", intervalHelp: "Choose the length of future rounds. This round does not change.", choosingInterval: "Song selection", ratingInterval: "Listening and reactions", days: "days", membership: "Membership", peopleInCircle: "People in this Circle", makeAdmin: "Make admin", remove: "Remove", memberPromoted: "Member is now an admin.", memberRemoved: "Member removed.", circleDetails: "Circle details", rulesAndLifecycle: "Rules and lifecycle", writeRules: "Write the Circle rules…", saveRules: "Save rules", archiveCircle: "Archive Circle", rulesUpdated: "Circle rules updated.", archiveConfirm: "Archive this Circle? Its history stays saved.", circleArchived: "Circle archived.",
     leaveCircle: "Leave Circle", round: "Round", adminOnlyTimeMachine: "Admin only · move this Circle’s live round forward", addDummyData: "Add dummy data", joinRequest: "join request", joinRequests: "join requests", privateUntilApproved: "Your Circle stays private until you approve.", decline: "Decline", approve: "Approve", signOut: "Sign out", openProfile: "Open profile", openDeveloperConsole: "Open developer console", newRoundStarted: "A new round has started.", invalidSongUrl: "Paste a Spotify track, album, or YouTube link.", songUpdated: "Your song was updated.", songLocked: "Your song is saved.", cannotRateOwn: "You cannot react to your own song.", allMustSubmit: "Everyone approved must add a song before you can start listening.", allMustReact: "Everyone must react before you can show results.", confirmEndChoosing: "Start listening now for the whole Circle?", confirmEndRating: "Show results now for the whole Circle?", choosingComplete: "Song selection is complete. Listening is now open.", ratingComplete: "Listening is complete. The results are ready.", leaveConfirm: "Leave {name}?", leftCircle: "You left the Circle.", timeMachineConfirm: "Move this Circle’s round forward by {days} days? This changes the deadlines for everyone.", timeMoved: "Time moved forward {days} days.", dummyDataAdded: "Added test listeners, songs, and reactions.", couldNotCreateDummyData: "Could not create dummy data.", songBy: "song by", musicLink: "Music link", chosenBy: "chosen by", musicSite: "music site", loadingControls: "Loading saved controls…", couldNotLoadControls: "Could not load this Circle’s saved controls.", sendingTest: "Sending test…", sendTestEmail: "Send a test email to me", testEmailHelp: "A test confirms the sender setup. New rounds and early phase changes email immediately.", testEmailSent: "Test email sent to your signed-in address.", couldNotSendTestEmail: "Could not send a test email.",
     timeMachine: "Time Machine", timeMachineSkipToListening: "Skip to listening", timeMachineSkipToResults: "Skip to results", timeMachinePhaseConfirm: "Move this Circle directly to the next phase? This changes shared deadlines for everyone.", timeMachinePhaseMoved: "Time moved to the next phase.",
+    roundCompletedEmail: "Results ready email", roundCompletedEmailHelp: "Tell the Circle that results are ready to see",
   },
   de: {
     language: "EN",
@@ -167,6 +167,7 @@ const ui = {
     circleAdministration: "Circle-Verwaltung", membersAndRounds: "Mitglieder · Runden", automation: "Automatisierung", costSafeControls: "Kostenbewusste Einstellungen", emailNotifications: "E-Mail-Benachrichtigungen", emailNotificationsHelp: "Hauptschalter – in der Entwicklung aus lassen", roundStartedEmail: "E-Mail zum Rundenstart", roundStartedEmailHelp: "Den Circle ans Hinzufügen erinnern", ratingStartedEmail: "E-Mail zum Hörstart", ratingStartedEmailHelp: "Sagen, dass die Songs bereit sind", streakWarningEmail: "Warnung vor Ende der Serie", streakWarningEmailHelp: "12 Stunden vor Ablauf warnen", browserPush: "Browser-Benachrichtigungen", browserPushHelp: "Kostenlos für angemeldete Geräte", automaticRounds: "Automatische neue Runden", automaticRoundsHelp: "Nach den Ergebnissen neu starten", invitations: "Einladungen", invitePeople: "Leute einladen", inviteHelp: "Private Links laufen nach 14 Tagen ab. Neue Mitglieder müssen weiter freigegeben werden.", copyInvitation: "Einladung kopieren", invitationCopied: "Einladung kopiert. Sie läuft nach 14 Tagen ab.", futureRounds: "Künftige Runden", listeningRhythm: "Länge der Runde", intervalHelp: "Lege die Länge künftiger Runden fest. Die aktuelle Runde ändert sich nicht.", choosingInterval: "Song-Auswahl", ratingInterval: "Hören und reagieren", days: "Tage", membership: "Mitgliedschaft", peopleInCircle: "Leute in diesem Circle", makeAdmin: "Zum Admin machen", remove: "Entfernen", memberPromoted: "Mitglied ist jetzt Admin.", memberRemoved: "Mitglied entfernt.", circleDetails: "Circle-Details", rulesAndLifecycle: "Regeln und Ablauf", writeRules: "Circle-Regeln schreiben…", saveRules: "Regeln speichern", archiveCircle: "Circle archivieren", rulesUpdated: "Circle-Regeln aktualisiert.", archiveConfirm: "Diesen Circle archivieren? Der Verlauf bleibt gespeichert.", circleArchived: "Circle archiviert.",
     leaveCircle: "Circle verlassen", round: "Runde", adminOnlyTimeMachine: "Nur für Admins · diese laufende Runde verschieben", addDummyData: "Testdaten hinzufügen", joinRequest: "Beitrittsanfrage", joinRequests: "Beitrittsanfragen", privateUntilApproved: "Dein Circle bleibt privat, bis du freigibst.", decline: "Ablehnen", approve: "Freigeben", signOut: "Abmelden", openProfile: "Profil öffnen", openDeveloperConsole: "Entwicklerkonsole öffnen", newRoundStarted: "Eine neue Runde hat begonnen.", invalidSongUrl: "Füge einen Spotify-Track, ein Album oder einen YouTube-Link ein.", songUpdated: "Dein Song wurde aktualisiert.", songLocked: "Dein Song ist gespeichert.", cannotRateOwn: "Du kannst nicht auf deinen eigenen Song reagieren.", allMustSubmit: "Alle freigegebenen Mitglieder müssen einen Song hinzufügen, bevor das Hören beginnt.", allMustReact: "Alle müssen reagieren, bevor du die Ergebnisse zeigen kannst.", confirmEndChoosing: "Hören jetzt für den ganzen Circle starten?", confirmEndRating: "Ergebnisse jetzt für den ganzen Circle zeigen?", choosingComplete: "Song-Auswahl abgeschlossen. Hören ist jetzt möglich.", ratingComplete: "Hören abgeschlossen. Die Ergebnisse sind bereit.", leaveConfirm: "{name} verlassen?", leftCircle: "Du hast den Circle verlassen.", timeMachineConfirm: "Die Runde dieses Circles um {days} Tage verschieben? Das ändert die Zeiten für alle.", timeMoved: "Zeit um {days} Tage verschoben.", dummyDataAdded: "Test-Hörer, Songs und Reaktionen hinzugefügt.", couldNotCreateDummyData: "Testdaten konnten nicht erstellt werden.", songBy: "Song von", musicLink: "Musik-Link", chosenBy: "ausgewählt von", musicSite: "Musikseite", loadingControls: "Gespeicherte Einstellungen werden geladen…", couldNotLoadControls: "Die gespeicherten Einstellungen dieses Circles konnten nicht geladen werden.", sendingTest: "Test wird gesendet…", sendTestEmail: "Test-E-Mail an mich senden", testEmailHelp: "Ein Test prüft die Absender-Einrichtung. Neue Runden und früh beendete Phasen versenden E-Mails sofort.", testEmailSent: "Test-E-Mail an deine angemeldete Adresse gesendet.", couldNotSendTestEmail: "Test-E-Mail konnte nicht gesendet werden.",
     timeMachine: "Zeitmaschine", timeMachineSkipToListening: "Direkt zum Hören", timeMachineSkipToResults: "Direkt zu den Ergebnissen", timeMachinePhaseConfirm: "Diesen Circle direkt in die nächste Phase verschieben? Das ändert die gemeinsamen Fristen für alle.", timeMachinePhaseMoved: "Zeit direkt zur nächsten Phase verschoben.",
+    roundCompletedEmail: "E-Mail zu den Ergebnissen", roundCompletedEmailHelp: "Dem Circle mitteilen, dass die Ergebnisse bereit sind",
   },
 } as const;
 
@@ -492,7 +493,7 @@ function UserPanel({ profile, close, language }: { profile: Profile; close: () =
     <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && close()}>
       <section className="profile-modal">
         <button className="modal-close" onClick={close} aria-label={text.close}><X size={18} /></button>
-        <div className="profile-head"><span className="large-avatar">{viewedProfile.nickname.slice(0, 1).toUpperCase()}</span><div><span className="eyebrow">{viewedProfile.id === profile.id ? text.yourProfile : text.listenerProfile}</span><h2>{viewedProfile.nickname}</h2><p><Flame size={15} /> {viewedProfile.streak} {text.roundStreak}</p></div></div>
+        <div className="profile-head"><span className="large-avatar">{viewedProfile.nickname.slice(0, 1).toUpperCase()}</span><div><span className="eyebrow">{viewedProfile.id === profile.id ? text.yourProfile : text.listenerProfile}</span><h2>{viewedProfile.nickname}</h2></div></div>
         <div className="profile-grid">
           <article>
             <span className="eyebrow">{text.reactionsReceived}</span>
@@ -511,7 +512,7 @@ function UserPanel({ profile, close, language }: { profile: Profile; close: () =
           <span className="eyebrow">{text.community}</span>
           <h3>{text.findListener}</h3>
           <form onSubmit={search}><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={text.searchByNickname} /><button>{text.search}</button></form>
-          {results.length > 0 && <div className="search-results">{results.map((user) => <button type="button" key={user.id} onClick={() => setViewedProfile(user)}><span className="avatar">{user.nickname.slice(0, 1).toUpperCase()}</span><strong>{user.nickname}</strong><small><Flame size={12} /> {user.streak} {text.streak}</small><span>{text.viewProfile}</span></button>)}</div>}
+          {results.length > 0 && <div className="search-results">{results.map((user) => <button type="button" key={user.id} onClick={() => setViewedProfile(user)}><span className="avatar">{user.nickname.slice(0, 1).toUpperCase()}</span><strong>{user.nickname}</strong><span>{text.viewProfile}</span></button>)}</div>}
         </article>
         {message && <p className="form-message">{message}</p>}
       </section>
@@ -542,7 +543,7 @@ function AdminPanel({ group, members, rounds, submissions, close, refresh, notif
     return () => { active = false; };
   }, [group.id, text.couldNotLoadControls]);
 
-  async function toggle(key: "email_notifications_enabled" | "round_started_email" | "rating_started_email" | "streak_warning_email" | "auto_start_rounds" | "push_notifications_enabled") {
+  async function toggle(key: "email_notifications_enabled" | "round_started_email" | "rating_started_email" | "round_completed_email" | "auto_start_rounds" | "push_notifications_enabled") {
     if (!settings || savingSetting) return;
     const previous = settings;
     const next = { ...settings, [key]: !settings[key] };
@@ -627,7 +628,7 @@ function AdminPanel({ group, members, rounds, submissions, close, refresh, notif
               ["email_notifications_enabled", text.emailNotifications, text.emailNotificationsHelp],
               ["round_started_email", text.roundStartedEmail, text.roundStartedEmailHelp],
               ["rating_started_email", text.ratingStartedEmail, text.ratingStartedEmailHelp],
-              ["streak_warning_email", text.streakWarningEmail, text.streakWarningEmailHelp],
+              ["round_completed_email", text.roundCompletedEmail, text.roundCompletedEmailHelp],
               ["push_notifications_enabled", text.browserPush, text.browserPushHelp],
               ["auto_start_rounds", text.automaticRounds, text.automaticRoundsHelp],
             ] as const).map(([key, title, description]) => (
@@ -831,7 +832,7 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
   const loadGroup = useCallback(async () => {
     if (!selectedId) return;
     const [{ data: memberData }, { data: roundData }, { data: settingData }] = await Promise.all([
-      supabase.from("group_members").select("*,users!group_members_user_id_fkey(id,nickname,streak)").eq("group_id", selectedId).order("created_at"),
+      supabase.from("group_members").select("*,users!group_members_user_id_fkey(id,nickname)").eq("group_id", selectedId).order("created_at"),
       supabase.from("rounds").select("*").eq("group_id", selectedId).order("round_number", { ascending: false }),
       supabase.from("group_settings").select("submission_interval_days,rating_interval_days").eq("group_id", selectedId).maybeSingle(),
     ]);
@@ -895,7 +896,7 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
   const phaseTarget = phase === "submit" ? currentRound?.submission_ends_at : currentRound?.rating_ends_at;
   void tick;
 
-  async function sendRoundEmail(event: "round_started" | "rating_started", roundId: string) {
+  async function sendRoundEmail(event: "round_started" | "rating_started" | "round_completed", roundId: string) {
     try {
       const { data } = await supabase.auth.getSession();
       await fetch("/api/notifications/round-event", {
@@ -1000,6 +1001,7 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
     if (error) setNotice(error.message);
     else {
       if (phase === "submit") await sendRoundEmail("rating_started", currentRound.id);
+      if (phase === "rate") await sendRoundEmail("round_completed", currentRound.id);
       setNotice(phase === "submit" ? text.choosingComplete : text.ratingComplete);
       await loadGroup();
     }
@@ -1094,7 +1096,6 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
           <LanguageToggle language={language} onChange={setLanguage} compact />
           <span className="avatar">{profile.nickname.slice(0, 1).toUpperCase()}</span>
           <span>{profile.nickname}</span>
-          <span className="streak"><Flame size={15} /> {profile.streak}</span>
           <button onClick={() => setShowProfile(true)} aria-label={text.openProfile}><UserRound size={17} /></button>
           {isPlatformAdmin && <button onClick={() => setShowPlatformAdmin(true)} aria-label={text.openDeveloperConsole}><Settings2 size={17} /></button>}
           <button onClick={() => supabase.auth.signOut()} aria-label={text.signOut}><LogOut size={17} /></button>

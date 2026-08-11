@@ -86,7 +86,6 @@ input:focus, textarea:focus { border-color: #57947c; box-shadow: 0 0 0 3px rgba(
 .topbar nav button.active:after { content: ""; position: absolute; height: 2px; background: var(--green); left: 0; right: 0; bottom: 0; }
 .user-menu { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 680; }
 .avatar { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: #d7e8e0; color: var(--green); font-weight: 800; }
-.streak { display: flex; align-items: center; gap: 3px; color: #b65e2f; background: #f8e8dc; padding: 5px 8px; border-radius: 20px; }
 .user-menu button, .hero-meta button { display: grid; place-items: center; border: 0; background: none; cursor: pointer; color: #7c8580; padding: 7px; }
 .notice { position: fixed; z-index: 50; top: 82px; left: 50%; transform: translateX(-50%); max-width: min(90vw, 520px); display: flex; align-items: center; gap: 16px; padding: 11px 13px 11px 16px; border-radius: 10px; color: white; background: #263e35; box-shadow: 0 12px 40px rgba(17,44,34,.25); font-size: 12px; }
 .notice button { border: 0; background: none; color: white; cursor: pointer; }
