@@ -88,6 +88,12 @@ Vercel is not reliably connected to the GitHub author identity. Do **not** use
 a normal source deployment. Build locally using Vercel Production environment
 values, then deploy a prebuilt artifact staged outside the Git worktree.
 
+The linked production project belongs to the Vercel team `$VERCEL_SCOPE`. The CLI may
+otherwise default to the personal scope even when the repository is linked to
+that team, causing `Not authorized` during deployment. Confirm access with
+`npx vercel whoami` and `npx vercel project ls --scope $VERCEL_SCOPE`, then include
+`--scope $VERCEL_SCOPE` on all production Vercel commands.
+
 Production email requires all of `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and
 `CRON_SECRET` in the Vercel Production environment. Check their presence with
 `npx vercel env ls production`; without a Resend API key and verified sender,
@@ -101,7 +107,7 @@ the circle admin’s **Send test email to me** action to verify delivery.
 3. Pull Vercel Production values:
 
 ```bash
-npx vercel pull --yes --environment=production
+npx vercel pull --yes --environment=production --scope $VERCEL_SCOPE
 ```
 
 4. Export those values so they take precedence over `.env.local`, then make the
@@ -109,7 +115,7 @@ npx vercel pull --yes --environment=production
 
 ```bash
 set -a && source .vercel/.env.production.local && set +a
-npx vercel build --prod
+npx vercel build --prod --scope $VERCEL_SCOPE
 ```
 
 The Next.js log can still say that it read `.env.local`; the exported process
@@ -139,7 +145,7 @@ rsync -a \
   --exclude='/.env.local' \
   --exclude='/.vercel/.env.production.local' \
   "$PWD/" "$release_dir/"
-npx vercel deploy --prebuilt --prod --yes --cwd "$release_dir"
+npx vercel deploy --prebuilt --prod --yes --scope $VERCEL_SCOPE --cwd "$release_dir"
 ```
 
 Do not exclude `.next` or nested `node_modules/**/dist`: Vercel's traced
@@ -158,6 +164,9 @@ curl -sS -I https://gems-music.com
 - The Vercel deployment reports `READY` and the alias was updated.
 - The downloaded browser bundle contains the cloud Supabase hostname and no
   localhost Supabase URL.
+- The downloaded browser bundle contains the changed UI text or behavior. An
+  HTTP 200 alone can be served from a stale alias or cache, so verify the
+  specific change before reporting success.
 - The changed user-facing path works in the browser, including empty, loading,
   success, and error states relevant to the change.
 - For authentication changes, test the configured production redirect path.
