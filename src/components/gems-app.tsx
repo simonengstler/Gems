@@ -116,7 +116,7 @@ const ratingOptions: { emoji: Emoji; points: number; label: string }[] = [
 
 const ui = {
   en: {
-    language: "DE",
+    language: "🇩🇪",
     languageLabel: "Deutsch anzeigen",
     authEyebrow: "Share music with your people",
     authTitle: <>Share a song.<br />Find new <em>favorites.</em></>,
@@ -143,7 +143,7 @@ const ui = {
     roundCompletedEmail: "Results ready email", roundCompletedEmailHelp: "Tell the Circle that results are ready to see",
   },
   de: {
-    language: "EN",
+    language: "🇬🇧",
     languageLabel: "Show English",
     authEyebrow: "Teile Musik mit deinen Leuten",
     authTitle: <>Teile Songs.<br />Entdecke neue <em>Favoriten.</em></>,

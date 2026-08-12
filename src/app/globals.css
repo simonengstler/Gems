@@ -26,8 +26,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .brand-button { padding: 0; border: 0; background: none; cursor: pointer; }
 .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; color: white; background: var(--green); border-radius: 10px 10px 12px 8px; transform: rotate(-3deg); }
 .brand-mark svg { transform: rotate(3deg); }
-.language-toggle { position: absolute; z-index: 2; top: 48px; right: 7vw; min-width: 40px; padding: 7px 9px; border: 1px solid rgba(255,255,255,.24); border-radius: 8px; color: #edf4ef; background: rgba(255,255,255,.08); cursor: pointer; font-size: 10px; font-weight: 800; letter-spacing: .08em; }
-.language-toggle.compact { position: static; min-width: 36px; border-color: #cbd8d1; color: var(--green); background: #f2f7f4; }
+.language-toggle { position: absolute; z-index: 2; top: 48px; right: 7vw; display: grid; min-width: 40px; min-height: 32px; padding: 5px 8px; place-items: center; border: 1px solid rgba(255,255,255,.24); border-radius: 8px; color: #edf4ef; background: rgba(255,255,255,.08); cursor: pointer; font-size: 17px; line-height: 1; }
+.language-toggle.compact { position: static; min-width: 36px; min-height: 30px; border-color: #cbd8d1; color: var(--green); background: #f2f7f4; }
 .eyebrow, .kicker { display: inline-flex; align-items: center; gap: 7px; color: var(--green-2); font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .muted { color: var(--muted); }
 .spin { animation: spin 1s linear infinite; }
