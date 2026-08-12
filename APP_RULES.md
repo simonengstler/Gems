@@ -21,7 +21,7 @@ uses **Circle** as the product term.
 - Authentication uses Supabase email and password.
 - Users must confirm their email before signing in when confirmation is enabled.
 - Password reset and authenticated password changes are supported.
-- Every user chooses a globally unique nickname of 2–32 characters.
+- Every user chooses a globally unique nickname of 2–32 characters during registration.
 - Nicknames are immutable.
 - The profile view shows aggregate activity and reactions received across all
   accessible circles.
