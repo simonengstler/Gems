@@ -4,6 +4,17 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-08-17 — Phase reminders use the final day
+
+**Status:** Accepted
+
+Choosing and rating intervals longer than one day receive one reminder during
+their final 24 hours. Only members who still need to submit or complete eligible
+ratings are emailed. One day is preferred over two because Circle admins may
+configure phases as short as one day; one-day phases rely on their opening email
+instead of sending two messages at the same boundary. The free daily scheduler
+does not guarantee an exact delivery hour.
+
 ## 2026-08-11 — Time Machine phase changes are real notification events
 
 **Status:** Accepted

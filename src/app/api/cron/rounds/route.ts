@@ -69,18 +69,39 @@ export async function GET(request: NextRequest) {
     }
 
     if ((!setting.email_notifications_enabled && !setting.push_notifications_enabled) || !activeRound) continue;
+    const startsAt = new Date(activeRound.starts_at).getTime();
     const submissionEnds = new Date(activeRound.submission_ends_at).getTime();
     const ratingEnds = new Date(activeRound.rating_ends_at).getTime();
     const completedRound = round && now >= new Date(round.rating_ends_at).getTime() ? round : null;
-    const candidates: { round: typeof activeRound; type: string; enabled: boolean; subject: string; body: string; active: boolean }[] = [
+    const { data: members } = await admin.from("group_members").select("user_id").eq("group_id", group.id).eq("status", "approved");
+    const [{ data: submissions }, { data: ratings }] = await Promise.all([
+      admin.from("submissions").select("id,user_id").eq("round_id", activeRound.id),
+      admin.from("ratings").select("submission_id,user_id").eq("round_id", activeRound.id),
+    ]);
+    const submittedUserIds = new Set((submissions || []).map((submission) => submission.user_id));
+    const submissionReminderRecipients = new Set(
+      (members || []).filter((member) => !submittedUserIds.has(member.user_id)).map((member) => member.user_id),
+    );
+    const ratingReminderRecipients = new Set<string>();
+    for (const member of members || []) {
+      const eligibleSubmissionIds = new Set(
+        (submissions || []).filter((submission) => submission.user_id !== member.user_id).map((submission) => submission.id),
+      );
+      const completedRatings = new Set(
+        (ratings || []).filter((rating) => rating.user_id === member.user_id && eligibleSubmissionIds.has(rating.submission_id)).map((rating) => rating.submission_id),
+      );
+      if (eligibleSubmissionIds.size > completedRatings.size) ratingReminderRecipients.add(member.user_id);
+    }
+    const candidates: { round: typeof activeRound; type: string; enabled: boolean; subject: string; body: string; active: boolean; recipients?: Set<string>; emailOnly?: boolean }[] = [
       { round: activeRound, type: "round_started", enabled: setting.round_started_email, subject: `Gems · ${group.name}: new round started`, body: "Submit one musical gem before the choosing interval closes.", active: roundStartedAutomatically },
+      { round: activeRound, type: "submission_reminder", enabled: setting.phase_reminder_email, subject: `Gems · ${group.name}: one day left / noch ein Tag`, body: "You still need to add your song before choosing ends.<br>Du musst deinen Song noch hinzufügen, bevor die Auswahl endet.", active: submissionEnds - startsAt > 24 * 3600000 && now < submissionEnds && submissionEnds - now <= 24 * 3600000, recipients: submissionReminderRecipients, emailOnly: true },
       { round: activeRound, type: "rating_started", enabled: setting.rating_started_email, subject: `Gems · ${group.name}: songs are ready`, body: "Listen to every song and leave exactly one reaction.", active: now >= submissionEnds && now - submissionEnds <= 24 * 3600000 && now < ratingEnds },
+      { round: activeRound, type: "rating_reminder", enabled: setting.phase_reminder_email, subject: `Gems · ${group.name}: one day left / noch ein Tag`, body: "You still have songs to react to before listening ends.<br>Du musst noch auf Songs reagieren, bevor das Hören endet.", active: ratingEnds - submissionEnds > 24 * 3600000 && now >= submissionEnds && now < ratingEnds && ratingEnds - now <= 24 * 3600000, recipients: ratingReminderRecipients, emailOnly: true },
       { round: completedRound, type: "round_completed", enabled: setting.round_completed_email, subject: `Gems · ${group.name}: results are ready`, body: "The round is complete. See which gems your Circle loved.", active: Boolean(completedRound && now - new Date(completedRound.rating_ends_at).getTime() <= 24 * 3600000) },
     ];
-    const { data: members } = await admin.from("group_members").select("user_id").eq("group_id", group.id).eq("status", "approved");
     for (const candidate of candidates.filter((item) => item.enabled && item.active)) {
       if (!candidate.round) continue;
-      for (const member of members || []) {
+      for (const member of (members || []).filter((item) => !candidate.recipients || candidate.recipients.has(item.user_id))) {
         const { data: existing } = await admin.from("notification_log").select("id")
           .eq("round_id", candidate.round.id).eq("notification_type", candidate.type).eq("recipient_id", member.user_id).maybeSingle();
         if (existing) continue;
@@ -100,7 +121,7 @@ export async function GET(request: NextRequest) {
             if (!result.error) { delivered = true; providerId = result.data?.id; sent++; }
           }
         }
-        if (setting.push_notifications_enabled && pushConfigured) {
+        if (!candidate.emailOnly && setting.push_notifications_enabled && pushConfigured) {
           const { data: subscriptions } = await admin.from("push_subscriptions").select("*").eq("user_id", member.user_id);
           for (const subscription of subscriptions || []) {
             try {

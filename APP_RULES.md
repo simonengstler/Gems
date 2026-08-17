@@ -110,8 +110,8 @@ alter a round already in progress.
 - Browser push is opt-in for each user/device and can be disabled at the circle
   level.
 - Email delivery has a circle-level master switch that defaults to off.
-- Round-started, rating-started, and results-ready notifications have
-  individual switches.
+- Round-started, rating-started, results-ready, and one-day reminder
+  notifications have individual switches.
 - Notification delivery is idempotent; the same event must not be sent twice to
   the same recipient for one round.
 - When Resend is not configured, email work is a dry run and no email is sent.
@@ -126,16 +126,20 @@ alter a round already in progress.
   deadline-based listening/results fallbacks; it is not a minute-precise
   scheduler.
 - Every email subject and body identifies the affected Circle by name. There
-  are four email categories:
+  are six email categories:
 
 | Email | Recipients | When it is sent |
 | --- | --- | --- |
 | Test email | The enabling/admin-testing admin | Immediately when email is enabled or the test action is used. |
 | New round | Every approved Circle member | Immediately after an admin starts a round; for automatic rounds, when the daily check creates it. |
+| Choosing reminder | Approved members who have not submitted | During the daily check in the final 24 hours of a choosing interval longer than one day. |
 | Songs ready | Every approved Circle member | Immediately when an admin opens listening early; otherwise in the first daily fallback after the rating phase begins. |
+| Rating reminder | Approved members who still have eligible songs to rate | During the daily check in the final 24 hours of a rating interval longer than one day. |
 | Results ready | Every approved Circle member | Immediately when an admin reveals results; otherwise in the first daily fallback after rating ends. |
 
-  Each event is sent at most once per recipient and round.
+  Each event is sent at most once per recipient and round. One-day phases do
+  not send a separate reminder because their phase-opening email already serves
+  that purpose.
 - A platform-operator view shows reference free-tier limits plus protected live
   application counters and remaining Resend allowances calculated from Gems'
   successful-delivery log. It is not visible to ordinary users or circle

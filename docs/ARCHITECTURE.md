@@ -149,8 +149,10 @@ counts, never recipient addresses.
 
 All notification emails put `Gems · {Circle name}` in the subject and repeat
 the Circle name in the HTML body. The user-visible email categories are an
-on-demand admin test, new-round, songs-ready, and results-ready email. The
-delivery log makes each event idempotent per recipient and round.
+on-demand admin test, new-round, choosing-reminder, songs-ready,
+rating-reminder, and results-ready email. Reminder bodies are bilingual because
+Gems does not yet persist a per-user language preference. The delivery log
+makes each event idempotent per recipient and round.
 
 The cron route:
 
@@ -158,6 +160,8 @@ The cron route:
 - starts a round only for circles with `auto_start_rounds` enabled;
 - sends an automatic round-start immediately after creating that round, and
   evaluates first-day rating and results-ready fallbacks;
+- sends one final-day email only to members who still need to submit or finish
+  eligible ratings, and skips a separate reminder for one-day phases;
 - respects circle email and push switches;
 - checks `notification_log` before delivery;
 - records only delivered notifications;
@@ -165,9 +169,9 @@ The cron route:
 
 `vercel.json` schedules this route once each day at 12:00 UTC. Vercel Hobby
 may invoke it within that hour. Immediate manual events are not dependent on
-that schedule; the daily rating fallback is limited to its first 24 hours and
-the warning is limited to the final 24 hours, so old phases are never sent as a
-backlog. The notification log keeps each recipient/event pair idempotent.
+that schedule; daily phase fallbacks are limited to their first 24 hours and
+reminders to the final 24 hours, so old phases are never sent as a backlog. The
+notification log keeps each recipient/event pair idempotent.
 
 The platform-status route exposes no credentials. It requires both an
 authenticated Supabase token and a `platform_admins` allowlist row. Its Resend
