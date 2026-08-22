@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { parseProviderUrl } from "@/lib/song-identity";
 import { createClient } from "@/lib/supabase";
 
 type Profile = { id: string; nickname: string };
@@ -139,7 +140,7 @@ const ui = {
     rated: "Rated", openPlayer: "Open player to listen", reactionsUnlock: "Reactions unlock after this click", openOriginal: "Open the original on", ownSong: "This is your song. Listen, but leave the reactions to your circle.", openBeforeReacting: "Open this song before choosing a reaction.",
     yourProfile: "Your profile", listenerProfile: "Listener profile", roundStreak: "round streak", reactionsReceived: "Reactions received", yourGemsByFeeling: "Your gems, by reaction", theirGemsByFeeling: "Their gems, by reaction", security: "Security", changePassword: "Change password", newPassword: "New password", updatePassword: "Update password", passwordUpdated: "Password updated.", enableBrowserNotifications: "Enable browser notifications", browserNotificationsEnabled: "Browser notifications enabled on this device.", pushNotConfigured: "Push is not set up yet.", pushUnsupported: "This browser does not support notifications.", permissionNotGranted: "Notification permission was not granted.", deviceNotSaved: "Could not save this device.", community: "Community", findListener: "Find a listener", searchByNickname: "Search by nickname", search: "Search", streak: "streak", viewProfile: "View profile", close: "Close",
     circleAdministration: "Circle administration", membersAndRounds: "members · rounds", automation: "Automation", costSafeControls: "Cost-safe controls", emailNotifications: "Email notifications", emailNotificationsHelp: "Main switch — keep off in development", roundStartedEmail: "Round started email", roundStartedEmailHelp: "Ask the Circle to add a song", ratingStartedEmail: "Listening started email", ratingStartedEmailHelp: "Tell the Circle that songs are ready", streakWarningEmail: "Streak warning email", streakWarningEmailHelp: "Warn 12 hours before time ends", browserPush: "Browser notifications", browserPushHelp: "Free delivery to opted-in devices", automaticRounds: "Automatic new rounds", automaticRoundsHelp: "Start again after results", invitations: "Invitations", invitePeople: "Invite people", inviteHelp: "Private links expire after 14 days. New members still need approval.", copyInvitation: "Copy invitation", invitationCopied: "Invitation copied. It expires in 14 days.", futureRounds: "Future rounds", listeningRhythm: "Round length", intervalHelp: "Choose the length of future rounds. This round does not change.", choosingInterval: "Song selection", ratingInterval: "Listening and reactions", days: "days", membership: "Membership", peopleInCircle: "People in this Circle", makeAdmin: "Make admin", remove: "Remove", memberPromoted: "Member is now an admin.", memberRemoved: "Member removed.", circleDetails: "Circle details", rulesAndLifecycle: "Rules and lifecycle", writeRules: "Write the Circle rules…", saveRules: "Save rules", archiveCircle: "Archive Circle", rulesUpdated: "Circle rules updated.", archiveConfirm: "Archive this Circle? Its history stays saved.", circleArchived: "Circle archived.",
-    leaveCircle: "Leave Circle", round: "Round", adminOnlyTimeMachine: "Admin only · move this Circle’s live round forward", addDummyData: "Add dummy data", joinRequest: "join request", joinRequests: "join requests", privateUntilApproved: "Your Circle stays private until you approve.", decline: "Decline", approve: "Approve", signOut: "Sign out", openProfile: "Open profile", openDeveloperConsole: "Open developer console", newRoundStarted: "A new round has started.", invalidSongUrl: "Paste a Spotify track, album, or YouTube link.", songUpdated: "Your song was updated.", songLocked: "Your song is saved.", cannotRateOwn: "You cannot react to your own song.", allMustSubmit: "Everyone approved must add a song before you can start listening.", allMustReact: "Everyone must react before you can show results.", confirmEndChoosing: "Start listening now for the whole Circle?", confirmEndRating: "Show results now for the whole Circle?", choosingComplete: "Song selection is complete. Listening is now open.", ratingComplete: "Listening is complete. The results are ready.", leaveConfirm: "Leave {name}?", leftCircle: "You left the Circle.", timeMachineConfirm: "Move this Circle’s round forward by {days} days? This changes the deadlines for everyone.", timeMoved: "Time moved forward {days} days.", dummyDataAdded: "Added test listeners, songs, and reactions.", couldNotCreateDummyData: "Could not create dummy data.", songBy: "song by", musicLink: "Music link", chosenBy: "chosen by", musicSite: "music site", loadingControls: "Loading saved controls…", couldNotLoadControls: "Could not load this Circle’s saved controls.", sendingTest: "Sending test…", sendTestEmail: "Send a test email to me", testEmailHelp: "A test confirms the sender setup. New rounds and early phase changes email immediately.", testEmailSent: "Test email sent to your signed-in address.", couldNotSendTestEmail: "Could not send a test email.",
+    leaveCircle: "Leave Circle", round: "Round", adminOnlyTimeMachine: "Admin only · move this Circle’s live round forward", addDummyData: "Add dummy data", joinRequest: "join request", joinRequests: "join requests", privateUntilApproved: "Your Circle stays private until you approve.", decline: "Decline", approve: "Approve", signOut: "Sign out", openProfile: "Open profile", openDeveloperConsole: "Open developer console", newRoundStarted: "A new round has started.", invalidSongUrl: "Paste a valid Spotify track, album, or YouTube link.", duplicateSong: "This song has already appeared in an earlier round of this Circle. Remixes and other distinct versions are still allowed.", submissionClosed: "Choosing has ended, so this song can no longer be changed.", songUpdated: "Your song was updated.", songLocked: "Your song is saved.", cannotRateOwn: "You cannot react to your own song.", allMustSubmit: "Everyone approved must add a song before you can start listening.", allMustReact: "Everyone must react before you can show results.", confirmEndChoosing: "Start listening now for the whole Circle?", confirmEndRating: "Show results now for the whole Circle?", choosingComplete: "Song selection is complete. Listening is now open.", ratingComplete: "Listening is complete. The results are ready.", leaveConfirm: "Leave {name}?", leftCircle: "You left the Circle.", timeMachineConfirm: "Move this Circle’s round forward by {days} days? This changes the deadlines for everyone.", timeMoved: "Time moved forward {days} days.", dummyDataAdded: "Added test listeners, songs, and reactions.", couldNotCreateDummyData: "Could not create dummy data.", songBy: "song by", musicLink: "Music link", chosenBy: "chosen by", musicSite: "music site", loadingControls: "Loading saved controls…", couldNotLoadControls: "Could not load this Circle’s saved controls.", sendingTest: "Sending test…", sendTestEmail: "Send a test email to me", testEmailHelp: "A test confirms the sender setup. New rounds and early phase changes email immediately.", testEmailSent: "Test email sent to your signed-in address.", couldNotSendTestEmail: "Could not send a test email.",
     timeMachine: "Time Machine", timeMachineSkipToListening: "Skip to listening", timeMachineSkipToResults: "Skip to results", timeMachinePhaseConfirm: "Move this Circle directly to the next phase? This changes shared deadlines for everyone.", timeMachinePhaseMoved: "Time moved to the next phase.", phaseEmailFailed: "The phase changed, but its notification email could not be sent. Check the email controls and try the test email.",
     roundCompletedEmail: "Results ready email", roundCompletedEmailHelp: "Tell the Circle that results are ready to see", phaseReminderEmail: "One-day reminder emails", phaseReminderEmailHelp: "Remind only members who still need to act during the final day",
   },
@@ -166,7 +167,7 @@ const ui = {
     rated: "Bewertet", openPlayer: "Player zum Hören öffnen", reactionsUnlock: "Danach kannst du reagieren", openOriginal: "Original öffnen auf", ownSong: "Das ist dein Song. Hör ihn gern an, aber die Reaktionen sind für deinen Circle.", openBeforeReacting: "Öffne diesen Song, bevor du reagierst.",
     yourProfile: "Dein Profil", listenerProfile: "Hörerprofil", roundStreak: "Runden-Serie", reactionsReceived: "Erhaltene Reaktionen", yourGemsByFeeling: "Deine Gems nach Reaktion", theirGemsByFeeling: "Gems nach Reaktion", security: "Sicherheit", changePassword: "Passwort ändern", newPassword: "Neues Passwort", updatePassword: "Passwort aktualisieren", passwordUpdated: "Passwort aktualisiert.", enableBrowserNotifications: "Browser-Benachrichtigungen aktivieren", browserNotificationsEnabled: "Browser-Benachrichtigungen sind auf diesem Gerät aktiv.", pushNotConfigured: "Push ist noch nicht eingerichtet.", pushUnsupported: "Dieser Browser unterstützt keine Benachrichtigungen.", permissionNotGranted: "Benachrichtigungen wurden nicht erlaubt.", deviceNotSaved: "Dieses Gerät konnte nicht gespeichert werden.", community: "Community", findListener: "Hörer finden", searchByNickname: "Nach Namen suchen", search: "Suchen", streak: "Serie", viewProfile: "Profil ansehen", close: "Schließen",
     circleAdministration: "Circle-Verwaltung", membersAndRounds: "Mitglieder · Runden", automation: "Automatisierung", costSafeControls: "Kostenbewusste Einstellungen", emailNotifications: "E-Mail-Benachrichtigungen", emailNotificationsHelp: "Hauptschalter – in der Entwicklung aus lassen", roundStartedEmail: "E-Mail zum Rundenstart", roundStartedEmailHelp: "Den Circle ans Hinzufügen erinnern", ratingStartedEmail: "E-Mail zum Hörstart", ratingStartedEmailHelp: "Sagen, dass die Songs bereit sind", streakWarningEmail: "Warnung vor Ende der Serie", streakWarningEmailHelp: "12 Stunden vor Ablauf warnen", browserPush: "Browser-Benachrichtigungen", browserPushHelp: "Kostenlos für angemeldete Geräte", automaticRounds: "Automatische neue Runden", automaticRoundsHelp: "Nach den Ergebnissen neu starten", invitations: "Einladungen", invitePeople: "Leute einladen", inviteHelp: "Private Links laufen nach 14 Tagen ab. Neue Mitglieder müssen weiter freigegeben werden.", copyInvitation: "Einladung kopieren", invitationCopied: "Einladung kopiert. Sie läuft nach 14 Tagen ab.", futureRounds: "Künftige Runden", listeningRhythm: "Länge der Runde", intervalHelp: "Lege die Länge künftiger Runden fest. Die aktuelle Runde ändert sich nicht.", choosingInterval: "Song-Auswahl", ratingInterval: "Hören und reagieren", days: "Tage", membership: "Mitgliedschaft", peopleInCircle: "Leute in diesem Circle", makeAdmin: "Zum Admin machen", remove: "Entfernen", memberPromoted: "Mitglied ist jetzt Admin.", memberRemoved: "Mitglied entfernt.", circleDetails: "Circle-Details", rulesAndLifecycle: "Regeln und Ablauf", writeRules: "Circle-Regeln schreiben…", saveRules: "Regeln speichern", archiveCircle: "Circle archivieren", rulesUpdated: "Circle-Regeln aktualisiert.", archiveConfirm: "Diesen Circle archivieren? Der Verlauf bleibt gespeichert.", circleArchived: "Circle archiviert.",
-    leaveCircle: "Circle verlassen", round: "Runde", adminOnlyTimeMachine: "Nur für Admins · diese laufende Runde verschieben", addDummyData: "Testdaten hinzufügen", joinRequest: "Beitrittsanfrage", joinRequests: "Beitrittsanfragen", privateUntilApproved: "Dein Circle bleibt privat, bis du freigibst.", decline: "Ablehnen", approve: "Freigeben", signOut: "Abmelden", openProfile: "Profil öffnen", openDeveloperConsole: "Entwicklerkonsole öffnen", newRoundStarted: "Eine neue Runde hat begonnen.", invalidSongUrl: "Füge einen Spotify-Track, ein Album oder einen YouTube-Link ein.", songUpdated: "Dein Song wurde aktualisiert.", songLocked: "Dein Song ist gespeichert.", cannotRateOwn: "Du kannst nicht auf deinen eigenen Song reagieren.", allMustSubmit: "Alle freigegebenen Mitglieder müssen einen Song hinzufügen, bevor das Hören beginnt.", allMustReact: "Alle müssen reagieren, bevor du die Ergebnisse zeigen kannst.", confirmEndChoosing: "Hören jetzt für den ganzen Circle starten?", confirmEndRating: "Ergebnisse jetzt für den ganzen Circle zeigen?", choosingComplete: "Song-Auswahl abgeschlossen. Hören ist jetzt möglich.", ratingComplete: "Hören abgeschlossen. Die Ergebnisse sind bereit.", leaveConfirm: "{name} verlassen?", leftCircle: "Du hast den Circle verlassen.", timeMachineConfirm: "Die Runde dieses Circles um {days} Tage verschieben? Das ändert die Zeiten für alle.", timeMoved: "Zeit um {days} Tage verschoben.", dummyDataAdded: "Test-Hörer, Songs und Reaktionen hinzugefügt.", couldNotCreateDummyData: "Testdaten konnten nicht erstellt werden.", songBy: "Song von", musicLink: "Musik-Link", chosenBy: "ausgewählt von", musicSite: "Musikseite", loadingControls: "Gespeicherte Einstellungen werden geladen…", couldNotLoadControls: "Die gespeicherten Einstellungen dieses Circles konnten nicht geladen werden.", sendingTest: "Test wird gesendet…", sendTestEmail: "Test-E-Mail an mich senden", testEmailHelp: "Ein Test prüft die Absender-Einrichtung. Neue Runden und früh beendete Phasen versenden E-Mails sofort.", testEmailSent: "Test-E-Mail an deine angemeldete Adresse gesendet.", couldNotSendTestEmail: "Test-E-Mail konnte nicht gesendet werden.",
+    leaveCircle: "Circle verlassen", round: "Runde", adminOnlyTimeMachine: "Nur für Admins · diese laufende Runde verschieben", addDummyData: "Testdaten hinzufügen", joinRequest: "Beitrittsanfrage", joinRequests: "Beitrittsanfragen", privateUntilApproved: "Dein Circle bleibt privat, bis du freigibst.", decline: "Ablehnen", approve: "Freigeben", signOut: "Abmelden", openProfile: "Profil öffnen", openDeveloperConsole: "Entwicklerkonsole öffnen", newRoundStarted: "Eine neue Runde hat begonnen.", invalidSongUrl: "Füge einen gültigen Spotify-Track, ein Album oder einen YouTube-Link ein.", duplicateSong: "Dieser Song war bereits in einer früheren Runde dieses Circles dabei. Remixe und andere eigenständige Versionen sind weiterhin erlaubt.", submissionClosed: "Die Auswahl ist beendet. Dieser Song kann nicht mehr geändert werden.", songUpdated: "Dein Song wurde aktualisiert.", songLocked: "Dein Song ist gespeichert.", cannotRateOwn: "Du kannst nicht auf deinen eigenen Song reagieren.", allMustSubmit: "Alle freigegebenen Mitglieder müssen einen Song hinzufügen, bevor das Hören beginnt.", allMustReact: "Alle müssen reagieren, bevor du die Ergebnisse zeigen kannst.", confirmEndChoosing: "Hören jetzt für den ganzen Circle starten?", confirmEndRating: "Ergebnisse jetzt für den ganzen Circle zeigen?", choosingComplete: "Song-Auswahl abgeschlossen. Hören ist jetzt möglich.", ratingComplete: "Hören abgeschlossen. Die Ergebnisse sind bereit.", leaveConfirm: "{name} verlassen?", leftCircle: "Du hast den Circle verlassen.", timeMachineConfirm: "Die Runde dieses Circles um {days} Tage verschieben? Das ändert die Zeiten für alle.", timeMoved: "Zeit um {days} Tage verschoben.", dummyDataAdded: "Test-Hörer, Songs und Reaktionen hinzugefügt.", couldNotCreateDummyData: "Testdaten konnten nicht erstellt werden.", songBy: "Song von", musicLink: "Musik-Link", chosenBy: "ausgewählt von", musicSite: "Musikseite", loadingControls: "Gespeicherte Einstellungen werden geladen…", couldNotLoadControls: "Die gespeicherten Einstellungen dieses Circles konnten nicht geladen werden.", sendingTest: "Test wird gesendet…", sendTestEmail: "Test-E-Mail an mich senden", testEmailHelp: "Ein Test prüft die Absender-Einrichtung. Neue Runden und früh beendete Phasen versenden E-Mails sofort.", testEmailSent: "Test-E-Mail an deine angemeldete Adresse gesendet.", couldNotSendTestEmail: "Test-E-Mail konnte nicht gesendet werden.",
     timeMachine: "Zeitmaschine", timeMachineSkipToListening: "Direkt zum Hören", timeMachineSkipToResults: "Direkt zu den Ergebnissen", timeMachinePhaseConfirm: "Diesen Circle direkt in die nächste Phase verschieben? Das ändert die gemeinsamen Fristen für alle.", timeMachinePhaseMoved: "Zeit direkt zur nächsten Phase verschoben.", phaseEmailFailed: "Die Phase wurde geändert, aber die Benachrichtigungs-E-Mail konnte nicht gesendet werden. Prüfe die E-Mail-Einstellungen und sende eine Test-E-Mail.",
     roundCompletedEmail: "E-Mail zu den Ergebnissen", roundCompletedEmailHelp: "Dem Circle mitteilen, dass die Ergebnisse bereit sind", phaseReminderEmail: "Erinnerungs-E-Mails einen Tag vorher", phaseReminderEmailHelp: "Am letzten Tag nur Mitglieder erinnern, denen noch etwas fehlt",
   },
@@ -213,22 +214,11 @@ function countdown(target?: string, language: Language = "en") {
 }
 
 function provider(url: string) {
-  try {
-    const parsed = new URL(url);
-    if (parsed.hostname.includes("spotify.com")) {
-      const match = parsed.pathname.match(/\/(track|album)\/([a-zA-Z0-9]+)/);
-      if (match) return { name: "Spotify", embed: `https://open.spotify.com/embed/${match[1]}/${match[2]}` };
-    }
-    if (parsed.hostname === "youtu.be") {
-      const id = parsed.pathname.slice(1).split("/")[0];
-      if (id) return { name: "YouTube", embed: `https://www.youtube.com/embed/${id}` };
-    }
-    if (parsed.hostname.includes("youtube.com")) {
-      const id = parsed.searchParams.get("v") || parsed.pathname.match(/\/(?:shorts|embed)\/([^/?]+)/)?.[1];
-      if (id) return { name: "YouTube", embed: `https://www.youtube.com/embed/${id}` };
-    }
-  } catch {}
-  return null;
+  const reference = parseProviderUrl(url);
+  if (!reference) return null;
+  return reference.provider === "spotify"
+    ? { name: "Spotify", embed: `https://open.spotify.com/embed/${reference.mediaKind}/${reference.providerItemId}` }
+    : { name: "YouTube", embed: `https://www.youtube.com/embed/${reference.providerItemId}` };
 }
 
 function Logo({ onClick }: { onClick?: () => void }) {
@@ -966,27 +956,24 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
       setNotice(text.invalidSongUrl);
       return;
     }
-    let metadata: { title?: string; artist?: string; thumbnailUrl?: string; provider?: string } = {};
     try {
-      const response = await fetch(`/api/metadata?url=${encodeURIComponent(songUrl.trim())}`);
-      if (response.ok) metadata = await response.json();
-    } catch {}
-    const payload = {
-      group_id: selectedId,
-      round_id: currentRound.id,
-      user_id: session.user.id,
-      song_url: songUrl.trim(),
-      title: metadata.title || null,
-      artist: metadata.artist || null,
-      thumbnail_url: metadata.thumbnailUrl || null,
-      provider: metadata.provider || null,
-    };
-    const { data: savedSubmission, error } = await supabase.from("submissions")
-      .upsert(payload, { onConflict: "round_id,user_id" })
-      .select("*")
-      .single();
-    if (error) setNotice(error.message);
-    else {
+      const response = await fetch("/api/submissions", {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ groupId: selectedId, roundId: currentRound.id, url: songUrl.trim() }),
+      });
+      const result = await response.json() as { submission?: Submission; error?: string; code?: string };
+      if (!response.ok || !result.submission) {
+        setNotice(result.code === "DUPLICATE_SONG"
+          ? text.duplicateSong
+          : result.code === "SUBMISSION_CLOSED"
+            ? text.submissionClosed
+            : result.code === "INVALID_SONG"
+              ? text.invalidSongUrl
+              : text.somethingWrong);
+        return;
+      }
+      const savedSubmission = result.submission;
       const saved = { ...(savedSubmission as Submission), users: profile };
       setSubmissions((items) => [
         ...items.filter((item) => item.id !== saved.id && !(item.round_id === saved.round_id && item.user_id === saved.user_id)),
@@ -995,6 +982,8 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
       setSongUrl("");
       setNotice(mySubmission ? text.songUpdated : text.songLocked);
       void loadGroup();
+    } catch {
+      setNotice(text.somethingWrong);
     }
   }
 

@@ -65,6 +65,14 @@ alter a round already in progress.
 - Valid media is playable with an embedded player when the provider permits it.
 - Every revealed song also has a direct link to the original provider.
 - A member may replace their own submission until the submission deadline.
+- A recording that appeared in an earlier round of the same Circle cannot be
+  submitted again. Spotify and YouTube links are compared by provider identity
+  and conservative normalized artist, title, and version metadata. Remixes,
+  live recordings, covers, acoustic versions, edits, and other clearly labeled
+  distinct versions remain eligible.
+- Coincidentally matching private submissions in the same round are allowed.
+  They do not reveal or block another member's hidden choice. After that round,
+  the recording counts as used for future rounds.
 - During choosing, the uploader sees the saved song's title, artist, artwork,
   and provider link immediately after submission and when returning to the app.
 - Other members can see submission progress, but titles, artists, URLs, and

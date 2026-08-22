@@ -42,6 +42,8 @@ External optional services
   profile, admin, round, rating, reveal, and history UI.
 - `src/lib/supabase.ts` creates the public Supabase browser client.
 - `src/app/api/metadata/route.ts` retrieves public Spotify/YouTube metadata.
+- `src/app/api/submissions/route.ts` authenticates and enriches song
+  submissions before writing them with the server-only Supabase credential.
 - `src/app/api/push/subscribe/route.ts` stores authenticated device
   subscriptions with a server-side service role.
 - `src/app/api/platform/status/route.ts` authenticates a platform allowlist
@@ -64,7 +66,8 @@ Core tables:
 - `groups`: immutable circle name, rules, creator, and optional archive time.
 - `group_members`: role, approval state, approver, and membership timestamps.
 - `rounds`: sequential round number and UTC phase boundaries.
-- `submissions`: one provider URL per member per round plus optional metadata.
+- `submissions`: one provider URL per member per round plus display metadata and
+  a server-derived provider/recording identity.
 - `ratings`: one reaction per rater per submission with generated points.
 
 Supporting tables:
@@ -82,6 +85,23 @@ safe membership checks, joining, leaving, invitation handling, limited user
 search, and atomic admin-only phase completion after all eligible participation
 is present.
 
+Song submission writes are server-mediated. The server validates the session
+and approved membership, accepts only canonical Spotify or YouTube hosts,
+retrieves free public oEmbed/page metadata, and derives normalized artist,
+title, and version fields. PostgreSQL takes a Circle-scoped transaction lock
+and rejects a matching provider item or high-confidence semantic recording
+match from a lower-numbered round. The comparison deliberately ignores
+presentation labels such as “Official Video” while retaining remix, live,
+cover, acoustic, edit, and similar version qualifiers. Same-round matches are
+excluded from the lookup so hidden coincidental choices remain private and are
+both accepted. Older rows are enriched lazily when their stored title makes
+them a plausible match.
+
+Authenticated browsers retain RLS-protected read/delete access to submissions
+but cannot insert or update them directly. Server-mediated writes and the
+database trigger are both required: the route supplies trusted metadata, while
+the trigger provides atomic cross-client enforcement.
+
 All schema changes are forward-only migrations in `supabase/migrations/`.
 
 ## Authorization model
@@ -89,8 +109,10 @@ All schema changes are forward-only migrations in `supabase/migrations/`.
 Supabase RLS is the primary data boundary:
 
 - Anonymous users have no access to application tables.
-- Users can manage their own profile, submission, rating, and push subscription
-  only where the corresponding policy permits it.
+- Users can manage their own profile, rating, and push subscription only where
+  the corresponding policy permits it. Submission creation/replacement goes
+  through the authenticated server route; users may still delete their own
+  submission during choosing under RLS.
 - Approved membership is required to read circle-owned records.
 - Admin membership is required to manage the circle, members, rounds,
   invitations, and settings.

@@ -4,6 +4,20 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-08-22 — Recording identity prevents repeats without exposing same-round choices
+
+**Status:** Accepted
+
+Gems rejects a recording that already appeared in an earlier round of the same
+Circle. Spotify and YouTube submissions use free public provider metadata plus
+conservative local normalization; no paid matching or AI service is required.
+Provider presentation text is ignored, while remix, live, cover, acoustic,
+edit, and similar version labels remain part of the recording identity so those
+versions stay eligible. Matches within one round are intentionally allowed
+because private members may choose the same recording coincidentally; neither
+submission may reveal or block the other. Submission writes are server-mediated
+and the final prior-round check is atomic in PostgreSQL.
+
 ## 2026-08-17 — Phase reminders use the final day
 
 **Status:** Accepted
