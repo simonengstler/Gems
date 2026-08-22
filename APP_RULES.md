@@ -65,6 +65,8 @@ alter a round already in progress.
 - Valid media is playable with an embedded player when the provider permits it.
 - Every revealed song also has a direct link to the original provider.
 - A member may replace their own submission until the submission deadline.
+- During choosing, the uploader sees the saved song's title, artist, artwork,
+  and provider link immediately after submission and when returning to the app.
 - Other members can see submission progress, but titles, artists, URLs, and
   submitter identities remain hidden until rating begins.
 - Once every approved member has submitted, a circle admin may end the choosing

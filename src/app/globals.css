@@ -139,9 +139,17 @@ aside { padding: 8px 12px 0 0; }
 .song-form > svg { color: #869089; flex: 0 0 auto; }
 .song-form input { padding: 10px 4px; border: 0; box-shadow: none; background: transparent; }
 .song-form button { height: 40px; padding: 0 15px; display: flex; align-items: center; gap: 6px; border: 0; border-radius: 8px; background: var(--green); color: white; font-size: 11px; font-weight: 750; cursor: pointer; white-space: nowrap; }
-.locked-note { display: flex; align-items: center; gap: 7px; color: var(--green-2); font-size: 10px; }
 .provider-shortcuts { margin: 0 0 16px; color: var(--muted); font-size: 10px; }
 .provider-shortcuts a { color: var(--green-2); font-weight: 750; }
+.own-submission-preview { margin-top: 20px; padding: 13px; display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 14px; border: 1px solid #cfe0d7; border-radius: 12px; background: #edf5f1; }
+.own-submission-art { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 9px; background-position: center; background-size: cover; }
+.own-submission-art.fallback { color: var(--green); background-color: #d9e9e1; }
+.own-submission-preview > div { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.own-submission-preview > div > small { color: var(--green-2); font-size: 8px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.own-submission-preview > div > strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.own-submission-preview > div > span { overflow: hidden; color: var(--muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.own-submission-preview p { margin: 5px 0 0; display: flex; align-items: center; gap: 5px; color: var(--green-2); font-size: 9px; }
+.own-submission-preview > a { display: flex; align-items: center; gap: 3px; color: var(--green-2); font-size: 9px; font-weight: 750; text-decoration: none; white-space: nowrap; }
 .member-progress { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-top: 28px; padding-top: 24px; border-top: 1px solid #ecece7; }
 .member-progress > div { position: relative; display: grid; grid-template-columns: 29px 1fr; align-items: center; column-gap: 8px; padding: 9px; border-radius: 9px; background: #f6f5f0; }
 .member-progress > div > span { grid-row: span 2; width: 29px; height: 29px; display: grid; place-items: center; border-radius: 50%; background: #e7e6df; color: #818781; font-size: 10px; font-weight: 800; }
@@ -372,6 +380,9 @@ aside { padding: 8px 12px 0 0; }
   .progress-ring { width: 64px; height: 64px; }
   .song-form { display: grid; grid-template-columns: auto 1fr; }
   .song-form button { grid-column: 1 / -1; justify-content: center; }
+  .own-submission-preview { grid-template-columns: 54px minmax(0, 1fr); }
+  .own-submission-art { width: 54px; height: 54px; }
+  .own-submission-preview > a { grid-column: 2; justify-self: start; }
   .song-grid { grid-template-columns: 1fr; }
   .rating-legend { display: grid; grid-template-columns: 1fr; }
   .admin-card, .dev-card { align-items: flex-start; flex-direction: column; }

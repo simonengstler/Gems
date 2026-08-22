@@ -133,7 +133,7 @@ const ui = {
     home: "Home", currentRound: "Current round", history: "History", newCircle: "New circle", profile: "Profile", admin: "Admin", yourCircles: "Your circles", members: "members", listeningCircle: "Music circle",
     homeEyebrow: "Music with friends, not an endless feed", homeTitle: "Share songs. Discover new favorites.", homeDescription: "Gems is a private music circle. Each person adds one song, then everyone listens and reacts. Your favorites stay saved.", choosePrivately: "Add a song", choosePrivatelyText: "Each person shares one song. It stays hidden until listening begins.", listenTogether: "Listen and react", listenTogetherText: "Listen to the songs and choose a simple reaction.", keepWhatMatters: "See the results", keepWhatMattersText: "Find the favorites and keep every round in your history.", goToRound: "Go to current round",
     freshCircle: "A new circle", waitingForGems: "Ready for your first round", needFriend: "Invite at least one friend. Then the admin can start the first round.", circleReady: "Your circle is ready. The admin can start the first round.", startRound: "Start round", adminStarts: "The circle admin will start the round.",
-    submit: "Submit", rate: "Rate", revealPhase: "Reveal", choosing: "Choose a song", listening: "Listen and react", revealWhenClosed: "See results", utcCountdown: "Time left", submissionPhase: "Add your song", yourGemIn: "Your song is added.", whatsYourGem: "Which song do you want to share?", swapAnytime: "You can change it until time runs out.", shareTrack: "Add one Spotify track, album, or YouTube video. It stays hidden until everyone can listen.", pasteMusic: "Paste a Spotify or YouTube link", pasteNewMusic: "Paste a new Spotify or YouTube link", submitGem: "Add song", swapGem: "Change song", needGem: "Need a song? Find one on", pasteLink: "then paste the link here.", currentLinkHidden: "Your song is hidden from the circle.", songAdded: "Song added", choosingSong: "Choosing a song…", allSongsIn: "Everyone added a song.", openRating: "You can open listening now instead of waiting.", endChoosing: "Start listening",
+    submit: "Submit", rate: "Rate", revealPhase: "Reveal", choosing: "Choose a song", listening: "Listen and react", revealWhenClosed: "See results", utcCountdown: "Time left", submissionPhase: "Add your song", yourGemIn: "Your song is added.", whatsYourGem: "Which song do you want to share?", swapAnytime: "You can change it until time runs out.", shareTrack: "Add one Spotify track, album, or YouTube video. It stays hidden until everyone can listen.", pasteMusic: "Paste a Spotify or YouTube link", pasteNewMusic: "Paste a new Spotify or YouTube link", submitGem: "Add song", swapGem: "Change song", needGem: "Need a song? Find one on", pasteLink: "then paste the link here.", yourSubmittedSong: "Your submitted song", currentLinkHidden: "Only you can see this song until listening begins.", songAdded: "Song added", choosingSong: "Choosing a song…", allSongsIn: "Everyone added a song.", openRating: "You can open listening now instead of waiting.", endChoosing: "Start listening",
     gemsUnlocked: "Songs are ready", listenWithIntention: "Listen, then react.", ratingDescription: "Open each song before you react. You cannot react to your own song.", circleRatings: "reactions", allReactionsIn: "Everyone has reacted.", revealResultsNow: "You can show the results now instead of waiting.", endRating: "Show results", roundComplete: "Round complete", brightestGems: "Circle favorites", revealDescription: "Every song and reaction, saved for your circle.", openSong: "Open song", points: "pts", startNextRound: "Start next round", vault: "Your music history", listeningHistory: "Past rounds", noHistory: "Completed rounds will appear here.",
     loading: "Loading Gems…",
     rated: "Rated", openPlayer: "Open player to listen", reactionsUnlock: "Reactions unlock after this click", openOriginal: "Open the original on", ownSong: "This is your song. Listen, but leave the reactions to your circle.", openBeforeReacting: "Open this song before choosing a reaction.",
@@ -160,7 +160,7 @@ const ui = {
     home: "Start", currentRound: "Aktuelle Runde", history: "Verlauf", newCircle: "Neuer Circle", profile: "Profil", admin: "Admin", yourCircles: "Deine Circles", members: "Mitglieder", listeningCircle: "Music Circle",
     homeEyebrow: "Musik mit Freunden, nicht mit einem endlosen Feed", homeTitle: "Teile Songs. Entdecke neue Favoriten.", homeDescription: "Gems ist ein privater Music Circle. Jede Person fügt einen Song hinzu, dann hören alle und reagieren. Eure Favoriten bleiben gespeichert.", choosePrivately: "Song hinzufügen", choosePrivatelyText: "Jede Person teilt einen Song. Er bleibt verborgen, bis das Hören beginnt.", listenTogether: "Hören und reagieren", listenTogetherText: "Höre die Songs und wähle eine einfache Reaktion.", keepWhatMatters: "Ergebnisse sehen", keepWhatMattersText: "Finde eure Favoriten und bewahre jede Runde im Verlauf.", goToRound: "Zur aktuellen Runde",
     freshCircle: "Ein neuer Circle", waitingForGems: "Bereit für die erste Runde", needFriend: "Lade mindestens einen Freund ein. Dann kann der Admin die erste Runde starten.", circleReady: "Dein Circle ist bereit. Der Admin kann die erste Runde starten.", startRound: "Runde starten", adminStarts: "Der Admin startet die Runde.",
-    submit: "Hinzufügen", rate: "Reagieren", revealPhase: "Ergebnisse", choosing: "Song auswählen", listening: "Hören und reagieren", revealWhenClosed: "Ergebnisse sehen", utcCountdown: "Verbleibende Zeit", submissionPhase: "Deinen Song hinzufügen", yourGemIn: "Dein Song ist hinzugefügt.", whatsYourGem: "Welchen Song möchtest du teilen?", swapAnytime: "Du kannst ihn ändern, bis die Zeit abläuft.", shareTrack: "Füge einen Spotify-Track, ein Album oder ein YouTube-Video hinzu. Der Song bleibt verborgen, bis alle hören können.", pasteMusic: "Spotify- oder YouTube-Link einfügen", pasteNewMusic: "Neuen Spotify- oder YouTube-Link einfügen", submitGem: "Song hinzufügen", swapGem: "Song ändern", needGem: "Suchst du einen Song? Finde ihn auf", pasteLink: "und füge den Link hier ein.", currentLinkHidden: "Dein Song ist für den Circle verborgen.", songAdded: "Song hinzugefügt", choosingSong: "Song wird ausgewählt…", allSongsIn: "Alle haben einen Song hinzugefügt.", openRating: "Du kannst das Hören jetzt starten.", endChoosing: "Hören starten",
+    submit: "Hinzufügen", rate: "Reagieren", revealPhase: "Ergebnisse", choosing: "Song auswählen", listening: "Hören und reagieren", revealWhenClosed: "Ergebnisse sehen", utcCountdown: "Verbleibende Zeit", submissionPhase: "Deinen Song hinzufügen", yourGemIn: "Dein Song ist hinzugefügt.", whatsYourGem: "Welchen Song möchtest du teilen?", swapAnytime: "Du kannst ihn ändern, bis die Zeit abläuft.", shareTrack: "Füge einen Spotify-Track, ein Album oder ein YouTube-Video hinzu. Der Song bleibt verborgen, bis alle hören können.", pasteMusic: "Spotify- oder YouTube-Link einfügen", pasteNewMusic: "Neuen Spotify- oder YouTube-Link einfügen", submitGem: "Song hinzufügen", swapGem: "Song ändern", needGem: "Suchst du einen Song? Finde ihn auf", pasteLink: "und füge den Link hier ein.", yourSubmittedSong: "Dein hinzugefügter Song", currentLinkHidden: "Nur du kannst diesen Song sehen, bis das Hören beginnt.", songAdded: "Song hinzugefügt", choosingSong: "Song wird ausgewählt…", allSongsIn: "Alle haben einen Song hinzugefügt.", openRating: "Du kannst das Hören jetzt starten.", endChoosing: "Hören starten",
     gemsUnlocked: "Songs sind bereit", listenWithIntention: "Hören, dann reagieren.", ratingDescription: "Öffne jeden Song, bevor du reagierst. Auf deinen eigenen Song kannst du nicht reagieren.", circleRatings: "Reaktionen", allReactionsIn: "Alle haben reagiert.", revealResultsNow: "Du kannst die Ergebnisse jetzt zeigen.", endRating: "Ergebnisse zeigen", roundComplete: "Runde beendet", brightestGems: "Favoriten im Circle", revealDescription: "Jeder Song und jede Reaktion – gespeichert für euren Circle.", openSong: "Song öffnen", points: "Pkt.", startNextRound: "Nächste Runde starten", vault: "Eure Musikgeschichte", listeningHistory: "Vergangene Runden", noHistory: "Abgeschlossene Runden erscheinen hier.",
     loading: "Gems wird geladen…",
     rated: "Bewertet", openPlayer: "Player zum Hören öffnen", reactionsUnlock: "Danach kannst du reagieren", openOriginal: "Original öffnen auf", ownSong: "Das ist dein Song. Hör ihn gern an, aber die Reaktionen sind für deinen Circle.", openBeforeReacting: "Öffne diesen Song, bevor du reagierst.",
@@ -793,6 +793,27 @@ function SongCard({ submission, rating, onRate, isOwn, language }: { submission:
   );
 }
 
+function OwnSubmissionPreview({ submission, language }: { submission: Submission; language: Language }) {
+  const media = provider(submission.song_url);
+  const text = ui[language];
+  return (
+    <article className="own-submission-preview">
+      {submission.thumbnail_url
+        ? <span className="own-submission-art" role="img" aria-label="" style={{ backgroundImage: `url("${submission.thumbnail_url}")` }} />
+        : <span className="own-submission-art fallback"><Music2 size={22} /></span>}
+      <div>
+        <small>{text.yourSubmittedSong}</small>
+        <strong>{submission.title || media?.name || text.musicLink}</strong>
+        {submission.artist && <span>{submission.artist}</span>}
+        <p><Check size={14} /> {text.currentLinkHidden}</p>
+      </div>
+      <a href={submission.song_url} target="_blank" rel="noopener noreferrer" aria-label={`${text.openOriginal} ${media?.name || text.musicSite}`}>
+        {media?.name || text.openSong} <ChevronRight size={15} />
+      </a>
+    </article>
+  );
+}
+
 function Dashboard({ session, language, setLanguage }: { session: Session; language: Language; setLanguage: (language: Language) => void }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileMissing, setProfileMissing] = useState(false);
@@ -960,12 +981,20 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
       thumbnail_url: metadata.thumbnailUrl || null,
       provider: metadata.provider || null,
     };
-    const { error } = await supabase.from("submissions").upsert(payload, { onConflict: "round_id,user_id" });
+    const { data: savedSubmission, error } = await supabase.from("submissions")
+      .upsert(payload, { onConflict: "round_id,user_id" })
+      .select("*")
+      .single();
     if (error) setNotice(error.message);
     else {
+      const saved = { ...(savedSubmission as Submission), users: profile };
+      setSubmissions((items) => [
+        ...items.filter((item) => item.id !== saved.id && !(item.round_id === saved.round_id && item.user_id === saved.user_id)),
+        saved,
+      ]);
       setSongUrl("");
       setNotice(mySubmission ? text.songUpdated : text.songLocked);
-      loadGroup();
+      void loadGroup();
     }
   }
 
@@ -1208,7 +1237,7 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
                 <button>{mySubmission ? text.swapGem : text.submitGem} <ChevronRight size={16} /></button>
               </form>
               <p className="provider-shortcuts">{text.needGem} <a href="https://open.spotify.com/" target="_blank" rel="noreferrer">Spotify</a>{language === "de" ? " oder " : " or "}<a href="https://www.youtube.com/" target="_blank" rel="noreferrer">YouTube</a>, {text.pasteLink}</p>
-              {mySubmission && <div className="locked-note"><Check size={16} /><span>{text.currentLinkHidden}</span></div>}
+              {mySubmission && <OwnSubmissionPreview submission={mySubmission} language={language} />}
               <div className="member-progress">
                 {approved.map((member) => {
                   const done = currentSubmissions.some((item) => item.user_id === member.user_id);

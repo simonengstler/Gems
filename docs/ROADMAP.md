@@ -15,6 +15,7 @@ its status changes; do not duplicate the same item in multiple sections.
 - Multiple-circle switching.
 - Configurable submit/rate intervals, reveal, and persistent history flow.
 - Spotify and YouTube parsing, embedded playback, metadata, and original links.
+- Private saved-song confirmation for uploaders throughout the choosing phase.
 - Five reactions with generated point values and per-user rating updates.
 - Profile totals, reactions received, nickname search, and full listener
   profile drill-down within existing access.
