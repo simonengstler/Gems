@@ -1288,6 +1288,7 @@ export function GemsApp() {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const [language, setLanguage] = useState<Language>("en");
   const languageLoaded = useRef(false);
+  const inviteRedemptionStarted = useRef(false);
   useEffect(() => {
     if (!languageLoaded.current) {
       languageLoaded.current = true;
@@ -1313,7 +1314,8 @@ export function GemsApp() {
   useEffect(() => {
     if (!session) return;
     const token = new URLSearchParams(location.search).get("invite");
-    if (!token) return;
+    if (!token || inviteRedemptionStarted.current) return;
+    inviteRedemptionStarted.current = true;
     supabase.rpc("join_group_by_invite", { invite_token: token }).then(({ error }) => {
       sessionStorage.setItem("gems-invite-result", error ? error.message : "Invitation accepted. The circle admin can now approve you.");
       history.replaceState({}, "", location.pathname);

@@ -1,6 +1,6 @@
 # Gems roadmap
 
-Last updated: 2026-08-10
+Last updated: 2026-08-23
 
 This is the shared status board for future chats. Move work between sections as
 its status changes; do not duplicate the same item in multiple sections.
@@ -11,7 +11,7 @@ its status changes; do not duplicate the same item in multiple sections.
 - Unique immutable nicknames and circle names.
 - Circle creation, exact-name join requests, approval, removal, leaving, and
   archiving.
-- Expiring private invitation links.
+- Expiring private invitation links with idempotent per-account redemption.
 - Multiple-circle switching.
 - Configurable submit/rate intervals, reveal, and persistent history flow.
 - Spotify and YouTube parsing, embedded playback, metadata, and original links.

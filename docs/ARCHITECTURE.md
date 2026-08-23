@@ -1,6 +1,6 @@
 # Gems architecture
 
-Last verified: 2026-08-10
+Last verified: 2026-08-23
 
 ## System overview
 
@@ -74,7 +74,8 @@ Supporting tables:
 
 - `group_settings`: email, push, and automatic-round switches.
 - `platform_admins`: explicit allowlist for developer/operator UI.
-- `group_invitations`: expiring private invitation tokens.
+- `group_invitations`: expiring private invitation tokens with a bounded,
+  idempotent redemption count.
 - `notification_log`: idempotency record for delivered notifications.
 - `push_subscriptions`: per-user browser push endpoints and keys.
 
@@ -84,6 +85,12 @@ prohibition and default settings. SQL functions provide
 safe membership checks, joining, leaving, invitation handling, limited user
 search, and atomic admin-only phase completion after all eligible participation
 is present.
+
+Invitation redemption locks the invitation row before checking membership and
+capacity. An account that is already pending or approved returns the existing
+request without incrementing the invitation's use count, including when two
+browser requests arrive concurrently. A new request or a rejected account's
+new request consumes one use.
 
 Song submission writes are server-mediated. The server validates the session
 and approved membership, accepts only canonical Spotify or YouTube hosts,

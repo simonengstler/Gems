@@ -4,6 +4,17 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-08-23 — Invitation uses count membership requests, not page loads
+
+**Status:** Accepted
+
+Redeeming an invitation is idempotent for an account that is already pending or
+approved in the Circle. Reopening a link, an authentication event firing twice,
+or concurrent browser requests must return the existing membership request
+without consuming additional uses. A new request, including a rejected
+account requesting approval again, consumes one use. PostgreSQL serializes
+redemptions on the invitation row so this guarantee holds across clients.
+
 ## 2026-08-22 — Recording identity prevents repeats without exposing same-round choices
 
 **Status:** Accepted

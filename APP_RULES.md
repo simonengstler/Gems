@@ -37,6 +37,9 @@ uses **Circle** as the product term.
 - Users may request membership by exact circle name or a private invitation
   link. An admin must approve the request before circle data becomes accessible.
 - Invitation links expire after 14 days.
+- Each invitation accepts up to 8 membership requests. Reopening the same link
+  from an account that is already pending or approved does not consume another
+  use.
 - Admins can approve or reject requests, remove members, edit circle rules,
   configure notifications and automation, create invitations, and archive a
   circle.
