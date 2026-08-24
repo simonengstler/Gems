@@ -4,6 +4,16 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-08-24 — Positive reactions use a broader point scale
+
+**Status:** Accepted
+
+The five reactions score 3/3/2/1/0 for 🖤/❤️/👍/👌/🤔. Loving a known song is
+worth the same as loving a discovery, while liking or finding a song decent
+still contributes to its score. Points remain generated from the reaction in
+PostgreSQL, so the updated scale also recalculates existing ratings and keeps
+historical leaderboards consistent with the current meaning of each reaction.
+
 ## 2026-08-23 — Invitation uses count membership requests, not page loads
 
 **Status:** Accepted

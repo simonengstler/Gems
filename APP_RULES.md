@@ -96,11 +96,11 @@ alter a round already in progress.
 
 | Reaction | Points | Meaning |
 | --- | ---: | --- |
-| 🖤 | 3 | I did not know this song, and I love it. |
-| ❤️ | 2 | I knew this song, and I love it. |
-| 👍 | 1 | Good song; I would add it to my playlist. |
-| 👌 | 0 | Decent song, but not quite my taste. |
-| 🤔 | 0 | Interesting choice, but it does not appeal to me. |
+| 🖤 | 3 | New to me, and I love it. |
+| ❤️ | 3 | I know it, and I love it. |
+| 👍 | 2 | Good — I like it. |
+| 👌 | 1 | Decent, not bad. |
+| 🤔 | 0 | Interesting, not quite my taste. |
 
 - Circle-wide rating progress is the number of completed reactions divided by
   all eligible member/submission pairs. Self-rating pairs are excluded.

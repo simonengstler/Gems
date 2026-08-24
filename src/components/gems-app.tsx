@@ -110,10 +110,10 @@ type PlatformStatus = {
 
 const ratingOptions: { emoji: Emoji; points: number; label: string }[] = [
   { emoji: "🖤", points: 3, label: "New to me, and I love it" },
-  { emoji: "❤️", points: 2, label: "I know it, and I love it" },
-  { emoji: "👍", points: 1, label: "Good — adding it" },
-  { emoji: "👌", points: 0, label: "Decent, not quite my taste" },
-  { emoji: "🤔", points: 0, label: "Interesting, not for my ears" },
+  { emoji: "❤️", points: 3, label: "I know it, and I love it" },
+  { emoji: "👍", points: 2, label: "Good — I like it" },
+  { emoji: "👌", points: 1, label: "Decent, not bad" },
+  { emoji: "🤔", points: 0, label: "Interesting, not quite my taste" },
 ];
 
 const ui = {
@@ -179,8 +179,8 @@ function LanguageToggle({ language, onChange, compact = false }: { language: Lan
 }
 
 const reactionLabels: Record<Language, Record<Emoji, string>> = {
-  en: { "🖤": "New to me, and I love it", "❤️": "I know it, and I love it", "👍": "Good — adding it", "👌": "Decent, not quite my taste", "🤔": "Interesting, not for me" },
-  de: { "🖤": "Neu für mich – und ich liebe es", "❤️": "Kenne ich – und ich liebe es", "👍": "Gut – kommt in meine Playlist", "👌": "Ganz gut, aber nicht mein Geschmack", "🤔": "Interessant, aber nicht für mich" },
+  en: { "🖤": "New to me, and I love it", "❤️": "I know it, and I love it", "👍": "Good — I like it", "👌": "Decent, not bad", "🤔": "Interesting, not quite my taste" },
+  de: { "🖤": "Neu für mich, und ich liebe es", "❤️": "Ich kenne es, und ich liebe es", "👍": "Gut – gefällt mir", "👌": "Ganz okay, nicht schlecht", "🤔": "Interessant, nicht ganz mein Geschmack" },
 };
 
 function reactionLabel(language: Language, emoji: Emoji) {
