@@ -1,6 +1,6 @@
 # Gems architecture
 
-Last verified: 2026-08-23
+Last verified: 2026-09-02
 
 ## System overview
 
@@ -189,8 +189,9 @@ The cron route:
 - starts a round only for circles with `auto_start_rounds` enabled;
 - sends an automatic round-start immediately after creating that round, and
   evaluates first-day rating and results-ready fallbacks;
-- sends one final-day email only to members who still need to submit or finish
-  eligible ratings, and skips a separate reminder for one-day phases;
+- sends one final-48-hours email only to members who still need to submit or
+  finish eligible ratings, and skips a separate reminder for phases of two days
+  or less;
 - respects circle email and push switches;
 - checks `notification_log` before delivery;
 - records only delivered notifications;
@@ -199,7 +200,7 @@ The cron route:
 `vercel.json` schedules this route once each day at 12:00 UTC. Vercel Hobby
 may invoke it within that hour. Immediate manual events are not dependent on
 that schedule; daily phase fallbacks are limited to their first 24 hours and
-reminders to the final 24 hours, so old phases are never sent as a backlog. The
+reminders to the final 48 hours, so old phases are never sent as a backlog. The
 notification log keeps each recipient/event pair idempotent.
 
 The platform-status route exposes no credentials. It requires both an

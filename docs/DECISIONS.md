@@ -4,6 +4,17 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-09-02 — Phase reminders use the final two days
+
+**Status:** Accepted; supersedes the 2026-08-17 final-day reminder decision
+
+Choosing and rating intervals longer than two days receive one reminder during
+their final 48 hours. Only members who still need to submit or complete eligible
+ratings are emailed. Phases of two days or less rely on their opening email
+instead of sending a reminder immediately at the same boundary. The free daily
+scheduler means delivery occurs within that window rather than at an exact
+hour.
+
 ## 2026-08-24 — Positive reactions use a broader point scale
 
 **Status:** Accepted
@@ -41,7 +52,7 @@ and the final prior-round check is atomic in PostgreSQL.
 
 ## 2026-08-17 — Phase reminders use the final day
 
-**Status:** Accepted
+**Status:** Superseded by the 2026-09-02 two-day reminder decision
 
 Choosing and rating intervals longer than one day receive one reminder during
 their final 24 hours. Only members who still need to submit or complete eligible

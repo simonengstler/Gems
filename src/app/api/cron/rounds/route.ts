@@ -5,6 +5,8 @@ import webpush from "web-push";
 
 export const dynamic = "force-dynamic";
 
+const REMINDER_WINDOW_MS = 48 * 3600000;
+
 function escapeHtml(value: string) {
   return value.replace(/[&<>'"]/g, (character) => ({
     "&": "&amp;",
@@ -94,9 +96,9 @@ export async function GET(request: NextRequest) {
     }
     const candidates: { round: typeof activeRound; type: string; enabled: boolean; subject: string; body: string; active: boolean; recipients?: Set<string>; emailOnly?: boolean }[] = [
       { round: activeRound, type: "round_started", enabled: setting.round_started_email, subject: `Gems · ${group.name}: new round started`, body: "Submit one musical gem before the choosing interval closes.", active: roundStartedAutomatically },
-      { round: activeRound, type: "submission_reminder", enabled: setting.phase_reminder_email, subject: `Gems · ${group.name}: one day left / noch ein Tag`, body: "You still need to add your song before choosing ends.<br>Du musst deinen Song noch hinzufügen, bevor die Auswahl endet.", active: submissionEnds - startsAt > 24 * 3600000 && now < submissionEnds && submissionEnds - now <= 24 * 3600000, recipients: submissionReminderRecipients, emailOnly: true },
+      { round: activeRound, type: "submission_reminder", enabled: setting.phase_reminder_email, subject: `Gems · ${group.name}: less than two days left / weniger als zwei Tage`, body: "You still need to add your song before choosing ends.<br>Du musst deinen Song noch hinzufügen, bevor die Auswahl endet.", active: submissionEnds - startsAt > REMINDER_WINDOW_MS && now < submissionEnds && submissionEnds - now <= REMINDER_WINDOW_MS, recipients: submissionReminderRecipients, emailOnly: true },
       { round: activeRound, type: "rating_started", enabled: setting.rating_started_email, subject: `Gems · ${group.name}: songs are ready`, body: "Listen to every song and leave exactly one reaction.", active: now >= submissionEnds && now - submissionEnds <= 24 * 3600000 && now < ratingEnds },
-      { round: activeRound, type: "rating_reminder", enabled: setting.phase_reminder_email, subject: `Gems · ${group.name}: one day left / noch ein Tag`, body: "You still have songs to react to before listening ends.<br>Du musst noch auf Songs reagieren, bevor das Hören endet.", active: ratingEnds - submissionEnds > 24 * 3600000 && now >= submissionEnds && now < ratingEnds && ratingEnds - now <= 24 * 3600000, recipients: ratingReminderRecipients, emailOnly: true },
+      { round: activeRound, type: "rating_reminder", enabled: setting.phase_reminder_email, subject: `Gems · ${group.name}: less than two days left / weniger als zwei Tage`, body: "You still have songs to react to before listening ends.<br>Du musst noch auf Songs reagieren, bevor das Hören endet.", active: ratingEnds - submissionEnds > REMINDER_WINDOW_MS && now >= submissionEnds && now < ratingEnds && ratingEnds - now <= REMINDER_WINDOW_MS, recipients: ratingReminderRecipients, emailOnly: true },
       { round: completedRound, type: "round_completed", enabled: setting.round_completed_email, subject: `Gems · ${group.name}: results are ready`, body: "The round is complete. See which gems your Circle loved.", active: Boolean(completedRound && now - new Date(completedRound.rating_ends_at).getTime() <= 24 * 3600000) },
     ];
     for (const candidate of candidates.filter((item) => item.enabled && item.active)) {

@@ -123,7 +123,7 @@ alter a round already in progress.
 - Browser push is opt-in for each user/device and can be disabled at the circle
   level.
 - Email delivery has a circle-level master switch that defaults to off.
-- Round-started, rating-started, results-ready, and one-day reminder
+- Round-started, rating-started, results-ready, and two-day reminder
   notifications have individual switches.
 - Notification delivery is idempotent; the same event must not be sent twice to
   the same recipient for one round.
@@ -145,14 +145,14 @@ alter a round already in progress.
 | --- | --- | --- |
 | Test email | The enabling/admin-testing admin | Immediately when email is enabled or the test action is used. |
 | New round | Every approved Circle member | Immediately after an admin starts a round; for automatic rounds, when the daily check creates it. |
-| Choosing reminder | Approved members who have not submitted | During the daily check in the final 24 hours of a choosing interval longer than one day. |
+| Choosing reminder | Approved members who have not submitted | During the daily check in the final 48 hours of a choosing interval longer than two days. |
 | Songs ready | Every approved Circle member | Immediately when an admin opens listening early; otherwise in the first daily fallback after the rating phase begins. |
-| Rating reminder | Approved members who still have eligible songs to rate | During the daily check in the final 24 hours of a rating interval longer than one day. |
+| Rating reminder | Approved members who still have eligible songs to rate | During the daily check in the final 48 hours of a rating interval longer than two days. |
 | Results ready | Every approved Circle member | Immediately when an admin reveals results; otherwise in the first daily fallback after rating ends. |
 
-  Each event is sent at most once per recipient and round. One-day phases do
-  not send a separate reminder because their phase-opening email already serves
-  that purpose.
+  Each event is sent at most once per recipient and round. Phases of two days
+  or less do not send a separate reminder because their phase-opening email
+  already serves that purpose.
 - A platform-operator view shows reference free-tier limits plus protected live
   application counters and remaining Resend allowances calculated from Gems'
   successful-delivery log. It is not visible to ordinary users or circle

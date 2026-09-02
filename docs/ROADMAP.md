@@ -1,6 +1,6 @@
 # Gems roadmap
 
-Last updated: 2026-08-23
+Last updated: 2026-09-02
 
 This is the shared status board for future chats. Move work between sections as
 its status changes; do not duplicate the same item in multiple sections.
@@ -33,7 +33,7 @@ its status changes; do not duplicate the same item in multiple sections.
 - One-glance product home page linked from the Gems brand.
 - Browser push subscription and idempotent notification delivery logic.
 - Cost-safe email controls and dry-run behavior when Resend is absent.
-- Final-day choosing and rating reminders sent only to incomplete members.
+- Two-day choosing and rating reminders sent only to incomplete members.
 - Admin-only production Time Machine with confirmation and direct next-phase
   shortcuts that preserve the listening interval and send phase emails.
 - Development-only dummy data.
