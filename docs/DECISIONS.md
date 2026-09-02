@@ -4,6 +4,15 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-09-02 — Circle navigation carries live context
+
+**Status:** Accepted
+
+Every Circle entry shows its latest round phase and phase-relevant progress so
+switching is not required to understand current status. The browser remembers
+the last selected Circle in a user-scoped key, but restores it only while that
+Circle remains accessible and active.
+
 ## 2026-09-02 — Phase reminders use the final two days
 
 **Status:** Accepted; supersedes the 2026-08-17 final-day reminder decision

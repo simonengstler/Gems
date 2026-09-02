@@ -13,6 +13,7 @@ its status changes; do not duplicate the same item in multiple sections.
   archiving.
 - Expiring private invitation links with idempotent per-account redemption.
 - Multiple-circle switching.
+- At-a-glance phase/progress summaries and reload-persistent Circle selection.
 - Configurable submit/rate intervals, reveal, and persistent history flow.
 - Spotify and YouTube parsing, embedded playback, metadata, and original links.
 - Circle-wide repeat-song prevention across Spotify and YouTube history, with

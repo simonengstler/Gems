@@ -47,6 +47,9 @@ uses **Circle** as the product term.
   valid administrative owner.
 - Archived circles disappear from the active circle list, while their database
   history is retained.
+- The Circle list shows every Circle's current phase, round number, and relevant
+  progress without requiring selection. The last selected accessible Circle is
+  restored after a reload on the same device.
 - Empty states must explain the next useful action rather than showing a blank
   screen.
 

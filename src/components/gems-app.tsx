@@ -35,6 +35,13 @@ type Group = {
   created_at: string;
   archived_at?: string | null;
 };
+type CircleOverview = {
+  round: Round | null;
+  memberCount: number;
+  submissionCount: number;
+  ratingCount: number;
+  eligibleRatingTotal: number;
+};
 type Member = {
   id: string;
   user_id: string;
@@ -132,6 +139,7 @@ const ui = {
     resetSent: "Password reset link sent. Check your inbox.", signedUp: "Check your email to confirm your account. Then sign in.", somethingWrong: "Something went wrong.",
     setupKicker: "Your music circle", setupTitle: "Create or join a circle", setupDescription: "Create a private circle for friends, or join one with its exact name.", create: "Create", join: "Join", circleName: "Circle name", exactCircleName: "Enter the exact circle name", rules: "Circle rules", optional: "optional", createCircle: "Create circle", requestJoin: "Ask to join", requestSent: "Request sent. The circle admin can approve you.", couldNotContinue: "Could not continue.",
     home: "Home", currentRound: "Current round", history: "History", newCircle: "New circle", profile: "Profile", admin: "Admin", yourCircles: "Your circles", members: "members", listeningCircle: "Music circle",
+    noRoundYet: "Ready to start",
     homeEyebrow: "Music with friends, not an endless feed", homeTitle: "Share songs. Discover new favorites.", homeDescription: "Gems is a private music circle. Each person adds one song, then everyone listens and reacts. Your favorites stay saved.", choosePrivately: "Add a song", choosePrivatelyText: "Each person shares one song. It stays hidden until listening begins.", listenTogether: "Listen and react", listenTogetherText: "Listen to the songs and choose a simple reaction.", keepWhatMatters: "See the results", keepWhatMattersText: "Find the favorites and keep every round in your history.", goToRound: "Go to current round",
     freshCircle: "A new circle", waitingForGems: "Ready for your first round", needFriend: "Invite at least one friend. Then the admin can start the first round.", circleReady: "Your circle is ready. The admin can start the first round.", startRound: "Start round", adminStarts: "The circle admin will start the round.",
     submit: "Submit", rate: "Rate", revealPhase: "Reveal", choosing: "Choose a song", listening: "Listen and react", revealWhenClosed: "See results", utcCountdown: "Time left", submissionPhase: "Add your song", yourGemIn: "Your song is added.", whatsYourGem: "Which song do you want to share?", swapAnytime: "You can change it until time runs out.", shareTrack: "Add one Spotify track, album, or YouTube video. It stays hidden until everyone can listen.", pasteMusic: "Paste a Spotify or YouTube link", pasteNewMusic: "Paste a new Spotify or YouTube link", submitGem: "Add song", swapGem: "Change song", needGem: "Need a song? Find one on", pasteLink: "then paste the link here.", yourSubmittedSong: "Your submitted song", currentLinkHidden: "Only you can see this song until listening begins.", songAdded: "Song added", choosingSong: "Choosing a song…", allSongsIn: "Everyone added a song.", openRating: "You can open listening now instead of waiting.", endChoosing: "Start listening",
@@ -159,6 +167,7 @@ const ui = {
     resetSent: "Link zum Zurücksetzen gesendet. Schau in dein Postfach.", signedUp: "Bestätige deine E-Mail. Danach kannst du dich anmelden.", somethingWrong: "Etwas ist schiefgelaufen.",
     setupKicker: "Dein Music Circle", setupTitle: "Circle erstellen oder beitreten", setupDescription: "Erstelle einen privaten Circle für Freunde oder tritt mit dem genauen Namen bei.", create: "Erstellen", join: "Beitreten", circleName: "Circle-Name", exactCircleName: "Genauen Circle-Namen eingeben", rules: "Circle-Regeln", optional: "optional", createCircle: "Circle erstellen", requestJoin: "Beitritt anfragen", requestSent: "Anfrage gesendet. Der Admin kann dich freigeben.", couldNotContinue: "Weiter geht es gerade nicht.",
     home: "Start", currentRound: "Aktuelle Runde", history: "Verlauf", newCircle: "Neuer Circle", profile: "Profil", admin: "Admin", yourCircles: "Deine Circles", members: "Mitglieder", listeningCircle: "Music Circle",
+    noRoundYet: "Bereit zum Start",
     homeEyebrow: "Musik mit Freunden, nicht mit einem endlosen Feed", homeTitle: "Teile Songs. Entdecke neue Favoriten.", homeDescription: "Gems ist ein privater Music Circle. Jede Person fügt einen Song hinzu, dann hören alle und reagieren. Eure Favoriten bleiben gespeichert.", choosePrivately: "Song hinzufügen", choosePrivatelyText: "Jede Person teilt einen Song. Er bleibt verborgen, bis das Hören beginnt.", listenTogether: "Hören und reagieren", listenTogetherText: "Höre die Songs und wähle eine einfache Reaktion.", keepWhatMatters: "Ergebnisse sehen", keepWhatMattersText: "Finde eure Favoriten und bewahre jede Runde im Verlauf.", goToRound: "Zur aktuellen Runde",
     freshCircle: "Ein neuer Circle", waitingForGems: "Bereit für die erste Runde", needFriend: "Lade mindestens einen Freund ein. Dann kann der Admin die erste Runde starten.", circleReady: "Dein Circle ist bereit. Der Admin kann die erste Runde starten.", startRound: "Runde starten", adminStarts: "Der Admin startet die Runde.",
     submit: "Hinzufügen", rate: "Reagieren", revealPhase: "Ergebnisse", choosing: "Song auswählen", listening: "Hören und reagieren", revealWhenClosed: "Ergebnisse sehen", utcCountdown: "Verbleibende Zeit", submissionPhase: "Deinen Song hinzufügen", yourGemIn: "Dein Song ist hinzugefügt.", whatsYourGem: "Welchen Song möchtest du teilen?", swapAnytime: "Du kannst ihn ändern, bis die Zeit abläuft.", shareTrack: "Füge einen Spotify-Track, ein Album oder ein YouTube-Video hinzu. Der Song bleibt verborgen, bis alle hören können.", pasteMusic: "Spotify- oder YouTube-Link einfügen", pasteNewMusic: "Neuen Spotify- oder YouTube-Link einfügen", submitGem: "Song hinzufügen", swapGem: "Song ändern", needGem: "Suchst du einen Song? Finde ihn auf", pasteLink: "und füge den Link hier ein.", yourSubmittedSong: "Dein hinzugefügter Song", currentLinkHidden: "Nur du kannst diesen Song sehen, bis das Hören beginnt.", songAdded: "Song hinzugefügt", choosingSong: "Song wird ausgewählt…", allSongsIn: "Alle haben einen Song hinzugefügt.", openRating: "Du kannst das Hören jetzt starten.", endChoosing: "Hören starten",
@@ -808,6 +817,7 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileMissing, setProfileMissing] = useState(false);
   const [groups, setGroups] = useState<Group[]>([]);
+  const [circleOverviews, setCircleOverviews] = useState<Record<string, CircleOverview>>({});
   const [selectedId, setSelectedId] = useState("");
   const [members, setMembers] = useState<Member[]>([]);
   const [rounds, setRounds] = useState<Round[]>([]);
@@ -835,11 +845,60 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
     const { data: memberships } = await supabase.from("group_members").select("group_id,status").eq("user_id", session.user.id);
     const approvedIds = (memberships || []).filter((m) => m.status === "approved").map((m) => m.group_id);
     if (approvedIds.length) {
-      const { data } = await supabase.from("groups").select("*").in("id", approvedIds).is("archived_at", null).order("created_at");
-      setGroups(data || []);
-      setSelectedId((current) => current || data?.[0]?.id || "");
+      const [{ data }, { data: roundData }, { data: overviewMemberData }] = await Promise.all([
+        supabase.from("groups").select("*").in("id", approvedIds).is("archived_at", null).order("created_at"),
+        supabase.from("rounds").select("*").in("group_id", approvedIds).order("round_number", { ascending: false }),
+        supabase.from("group_members").select("group_id,user_id").in("group_id", approvedIds).eq("status", "approved"),
+      ]);
+      const availableGroups = (data || []) as Group[];
+      const availableIds = new Set(availableGroups.map((item) => item.id));
+      const latestRounds = new Map<string, Round>();
+      for (const round of (roundData || []) as Round[]) {
+        if (availableIds.has(round.group_id) && !latestRounds.has(round.group_id)) latestRounds.set(round.group_id, round);
+      }
+      const currentRoundIds = [...latestRounds.values()].map((round) => round.id);
+      const [{ data: overviewSubmissions }, { data: overviewRatings }] = currentRoundIds.length
+        ? await Promise.all([
+            supabase.from("submissions").select("id,group_id,round_id,user_id").in("round_id", currentRoundIds),
+            supabase.from("ratings").select("group_id,round_id,submission_id,user_id").in("round_id", currentRoundIds),
+          ])
+        : [{ data: [] }, { data: [] }];
+      const overviews: Record<string, CircleOverview> = {};
+      for (const item of availableGroups) {
+        const round = latestRounds.get(item.id) || null;
+        const approvedUserIds = new Set((overviewMemberData || []).filter((member) => member.group_id === item.id).map((member) => member.user_id));
+        const roundSubmissions = (overviewSubmissions || []).filter((submission) => submission.round_id === round?.id && approvedUserIds.has(submission.user_id));
+        const submissionIds = new Set(roundSubmissions.map((submission) => submission.id));
+        const eligibleRatingTotal = [...approvedUserIds].reduce(
+          (total, userId) => total + roundSubmissions.filter((submission) => submission.user_id !== userId).length,
+          0,
+        );
+        const ratingCount = (overviewRatings || []).filter((rating) => (
+          rating.round_id === round?.id
+          && approvedUserIds.has(rating.user_id)
+          && submissionIds.has(rating.submission_id)
+          && roundSubmissions.some((submission) => submission.id === rating.submission_id && submission.user_id !== rating.user_id)
+        )).length;
+        overviews[item.id] = {
+          round,
+          memberCount: approvedUserIds.size,
+          submissionCount: roundSubmissions.length,
+          ratingCount,
+          eligibleRatingTotal,
+        };
+      }
+      setGroups(availableGroups);
+      setCircleOverviews(overviews);
+      setSelectedId((current) => {
+        let saved = "";
+        try { saved = localStorage.getItem(`gems:selected-circle:${session.user.id}`) || ""; } catch {}
+        if (current && availableIds.has(current)) return current;
+        return availableIds.has(saved) ? saved : availableGroups[0]?.id || "";
+      });
     } else {
       setGroups([]);
+      setCircleOverviews({});
+      setSelectedId("");
     }
     setLoading(false);
   }, [session.user.id]);
@@ -883,6 +942,10 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
   useEffect(() => {
     if (profileMissing) void supabase.auth.signOut();
   }, [profileMissing]);
+  useEffect(() => {
+    if (!selectedId) return;
+    try { localStorage.setItem(`gems:selected-circle:${session.user.id}`, selectedId); } catch {}
+  }, [selectedId, session.user.id]);
   useEffect(() => {
     supabase.from("platform_admins").select("user_id").eq("user_id", session.user.id).maybeSingle()
       .then(({ data }) => setIsPlatformAdmin(Boolean(data)));
@@ -1167,7 +1230,22 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
       <main className="dashboard">
         <aside>
           <p className="sidebar-label">{text.yourCircles}</p>
-          {groups.map((item) => <button key={item.id} className={item.id === selectedId ? "group-link active" : "group-link"} onClick={() => setSelectedId(item.id)}><span>{item.name.slice(0, 1)}</span><div><strong>{item.name}</strong><small>{item.id === selectedId ? `${approved.length} ${text.members}` : text.listeningCircle}</small></div></button>)}
+          {groups.map((item) => {
+            const overview = circleOverviews[item.id];
+            const overviewPhase = phaseOf(overview?.round || null);
+            const progressValue = overviewPhase === "submit" ? overview?.submissionCount || 0 : overviewPhase === "rate" ? overview?.ratingCount || 0 : overviewPhase === "reveal" ? 1 : 0;
+            const progressTotal = overviewPhase === "submit" ? overview?.memberCount || 0 : overviewPhase === "rate" ? overview?.eligibleRatingTotal || 0 : overviewPhase === "reveal" ? 1 : 0;
+            const progressPercent = progressTotal ? Math.min(100, (progressValue / progressTotal) * 100) : 0;
+            const phaseLabel = overviewPhase === "submit" ? text.choosing : overviewPhase === "rate" ? text.listening : overviewPhase === "reveal" ? text.roundComplete : text.noRoundYet;
+            return <button key={item.id} className={item.id === selectedId ? "group-link active" : "group-link"} onClick={() => setSelectedId(item.id)}>
+              <span>{item.name.slice(0, 1)}</span>
+              <div className="group-link-summary">
+                <div className="group-link-title"><strong>{item.name}</strong><b className={`circle-phase ${overviewPhase}`}>{phaseLabel}</b></div>
+                <small>{overview?.round ? `${text.round} ${overview.round.round_number}` : `${overview?.memberCount || 0} ${text.members}`}</small>
+                {overviewPhase !== "empty" && <div className="circle-progress"><span><i style={{ width: `${progressPercent}%` }} /></span><b>{overviewPhase === "reveal" ? "✓" : `${progressValue}/${progressTotal}`}</b></div>}
+              </div>
+            </button>;
+          })}
           <button className="new-group" onClick={() => setShowGroupSetup(true)}><Plus size={16} /> {text.newCircle}</button>
         </aside>
         <div className="main-column">

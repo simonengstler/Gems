@@ -153,6 +153,11 @@ Round timestamps are stored in UTC:
 The browser derives the phase from these timestamps. Automatic starts are not
 continuously running inside Next.js; they require calls to `/api/cron/rounds`.
 
+The Circle navigation loads each accessible Circle's latest round, approved
+members, current submissions, and eligible ratings to show compact phase and
+progress summaries. The selected Circle ID is stored under a user-scoped
+browser key and restored only if it remains in the current accessible set.
+
 `complete_round_phase` locks the active round, verifies circle-admin access,
 counts approved members, submissions, and eligible ratings, and advances the
 relevant deadline only when the whole phase is complete. If choosing ends
