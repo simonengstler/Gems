@@ -105,6 +105,8 @@ aside { padding: 8px 12px 0 0; }
 .circle-phase.submit { color: #7c5b2c; background: #f5ead7; }
 .circle-phase.rate { color: #245f4a; background: #dcece4; }
 .circle-phase.reveal { color: #7b4e26; background: #f1dfcb; }
+.circle-round-time { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; }
+.circle-time { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 3px; color: #65716a !important; font-weight: 700; white-space: nowrap; }
 .circle-progress { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px; margin-top: 2px; }
 .circle-progress > span { height: 4px; overflow: hidden; border-radius: 999px; background: #e4e7e3; }
 .circle-progress i { display: block; height: 100%; border-radius: inherit; background: var(--green-2); }

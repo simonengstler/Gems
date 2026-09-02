@@ -1237,11 +1237,15 @@ function Dashboard({ session, language, setLanguage }: { session: Session; langu
             const progressTotal = overviewPhase === "submit" ? overview?.memberCount || 0 : overviewPhase === "rate" ? overview?.eligibleRatingTotal || 0 : overviewPhase === "reveal" ? 1 : 0;
             const progressPercent = progressTotal ? Math.min(100, (progressValue / progressTotal) * 100) : 0;
             const phaseLabel = overviewPhase === "submit" ? text.choosing : overviewPhase === "rate" ? text.listening : overviewPhase === "reveal" ? text.roundComplete : text.noRoundYet;
+            const overviewTarget = overviewPhase === "submit" ? overview?.round?.submission_ends_at : overviewPhase === "rate" ? overview?.round?.rating_ends_at : undefined;
             return <button key={item.id} className={item.id === selectedId ? "group-link active" : "group-link"} onClick={() => setSelectedId(item.id)}>
               <span>{item.name.slice(0, 1)}</span>
               <div className="group-link-summary">
                 <div className="group-link-title"><strong>{item.name}</strong><b className={`circle-phase ${overviewPhase}`}>{phaseLabel}</b></div>
-                <small>{overview?.round ? `${text.round} ${overview.round.round_number}` : `${overview?.memberCount || 0} ${text.members}`}</small>
+                <div className="circle-round-time">
+                  <small>{overview?.round ? `${text.round} ${overview.round.round_number}` : `${overview?.memberCount || 0} ${text.members}`}</small>
+                  {overviewTarget && <small className="circle-time"><Clock3 size={9} /> {countdown(overviewTarget, language)}</small>}
+                </div>
                 {overviewPhase !== "empty" && <div className="circle-progress"><span><i style={{ width: `${progressPercent}%` }} /></span><b>{overviewPhase === "reveal" ? "✓" : `${progressValue}/${progressTotal}`}</b></div>}
               </div>
             </button>;
