@@ -112,12 +112,34 @@ the circle admin’s **Send test email to me** action to verify delivery.
 npx vercel pull --yes --environment=production --scope "$VERCEL_SCOPE"
 ```
 
-4. Export those values so they take precedence over `.env.local`, then make the
-   production artifact:
+4. Inspect the pull result before building. Vercel marks sensitive values as
+`[SENSITIVE]` because they cannot be downloaded. Gems only needs the real
+`NEXT_PUBLIC_*` values during compilation; server credentials are read inside
+request handlers and supplied by Vercel at runtime. Never substitute local
+Supabase credentials or upload those placeholders as runtime overrides.
+If any public build value is unavailable, stop the release. Remove only the
+known server-only placeholder lines from the local build cache:
+
+```bash
+python3 - <<'PYBUILD'
+from pathlib import Path
+path = Path('.vercel/.env.production.local')
+lines = path.read_text().splitlines()
+allowed = {'CRON_SECRET', 'RESEND_API_KEY', 'RESEND_FROM_EMAIL',
+           'SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'VAPID_PRIVATE_KEY'}
+missing = {line.split('=', 1)[0] for line in lines if '[SENSITIVE]' in line}
+assert missing <= allowed, 'A public build value is unavailable; stop release'
+path.write_text('\n'.join(line for line in lines if '[SENSITIVE]' not in line) + '\n')
+PYBUILD
+```
+
+Export the remaining Production values so they take precedence over
+`.env.local`, then make the production artifact. Disable package lifecycle
+scripts during the build's dependency-install step:
 
 ```bash
 set -a && source .vercel/.env.production.local && set +a
-npx vercel build --prod --scope "$VERCEL_SCOPE"
+npm_config_ignore_scripts=true npx vercel build --prod --scope "$VERCEL_SCOPE"
 ```
 
 The Next.js log can still say that it read `.env.local`; the exported process

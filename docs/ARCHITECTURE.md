@@ -54,7 +54,11 @@ External optional services
   requests.
 - `public/sw.js` receives browser push notifications.
 
-The runtime uses Next.js 16.4.0. The repository no longer carries the unused
+The runtime uses Next.js 16.4.0. Sensitive Vercel Production variables remain
+server runtime configuration; prebuilt compilation needs only public values.
+Sensitive-value placeholders returned by the CLI are omitted from the local
+build cache, and no local secret is substituted. Package lifecycle scripts
+are disabled during release dependency installation. The repository no longer carries the unused
 Vite, Vinext, Cloudflare, Wrangler, or Shadcn CLI packages; the existing Radix
 components and Tailwind styling remain. The lockfile includes reviewed
 compatible security updates. Development is paused, so dependency checks must
