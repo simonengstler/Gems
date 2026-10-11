@@ -1,6 +1,6 @@
 # Gems operations runbook
 
-Last verified: 2026-08-10
+Last updated: 2026-10-11
 
 This is the operational handoff for a fresh chat. Read it before changing the
 database, environment configuration, or production deployment.
@@ -88,11 +88,13 @@ Vercel is not reliably connected to the GitHub author identity. Do **not** use
 a normal source deployment. Build locally using Vercel Production environment
 values, then deploy a prebuilt artifact staged outside the Git worktree.
 
-The linked production project belongs to the Vercel team `$VERCEL_SCOPE`. The CLI may
-otherwise default to the personal scope even when the repository is linked to
-that team, causing `Not authorized` during deployment. Confirm access with
-`npx vercel whoami` and `npx vercel project ls --scope $VERCEL_SCOPE`, then include
-`--scope $VERCEL_SCOPE` on all production Vercel commands.
+The CLI may default to a personal scope even when the project belongs to a
+team, causing `Not authorized` during deployment. Confirm access with
+`npx vercel whoami` and `npx vercel teams ls`. Set `VERCEL_SCOPE` to the slug of
+the team owning the linked project (check the local `.vercel/project.json` and
+Vercel dashboard). Keep that account-specific value outside Git. Confirm the
+project appears in `npx vercel project ls --scope "$VERCEL_SCOPE"`, then include
+`--scope "$VERCEL_SCOPE"` on all production Vercel commands.
 
 Production email requires all of `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and
 `CRON_SECRET` in the Vercel Production environment. Check their presence with
@@ -107,7 +109,7 @@ the circle admin’s **Send test email to me** action to verify delivery.
 3. Pull Vercel Production values:
 
 ```bash
-npx vercel pull --yes --environment=production --scope $VERCEL_SCOPE
+npx vercel pull --yes --environment=production --scope "$VERCEL_SCOPE"
 ```
 
 4. Export those values so they take precedence over `.env.local`, then make the
@@ -115,7 +117,7 @@ npx vercel pull --yes --environment=production --scope $VERCEL_SCOPE
 
 ```bash
 set -a && source .vercel/.env.production.local && set +a
-npx vercel build --prod --scope $VERCEL_SCOPE
+npx vercel build --prod --scope "$VERCEL_SCOPE"
 ```
 
 The Next.js log can still say that it read `.env.local`; the exported process
@@ -145,7 +147,7 @@ rsync -a \
   --exclude='/.env.local' \
   --exclude='/.vercel/.env.production.local' \
   "$PWD/" "$release_dir/"
-npx vercel deploy --prebuilt --prod --yes --scope $VERCEL_SCOPE --cwd "$release_dir"
+npx vercel deploy --prebuilt --prod --yes --scope "$VERCEL_SCOPE" --cwd "$release_dir"
 ```
 
 Do not exclude `.next` or nested `node_modules/**/dist`: Vercel's traced

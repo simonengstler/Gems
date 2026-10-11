@@ -5,7 +5,52 @@ chooses the duration of its choosing and rating intervals.
 Members submit one Spotify or YouTube link, listen and react during the rating
 phase, then keep the leaderboard and reactions in a permanent round archive.
 
-Production: [https://gems-music.com](https://gems-music.com)
+## Project status
+
+Gems is a working personal project built for a small group of friends.
+Development is currently paused, with the option to return to it later. It is
+shared as a portfolio project, without a promise of ongoing maintenance.
+
+The responsive web application implements the sharing cycle. There is no
+native iOS or Android app. Browser push subscription and delivery code exists,
+but dependable end-to-end notification delivery is not claimed as verified.
+The project did not establish regular use within the original friend group.
+
+Live application: [gems-music.com](https://gems-music.com). The link requires an
+account for private Circle features; it does not provide access to existing
+Circles or a public demo account. Availability may change while development is
+paused.
+
+![Gems welcome and sign-in screen](docs/images/welcome.png)
+
+## Features and engineering
+
+- Private Circles for 2–8 approved members, invitation links, and admin controls.
+- A complete submit, listen/react, and reveal cycle with persistent history.
+- Spotify and YouTube metadata, embedded playback, and repeat-song prevention.
+- Configurable phase durations, countdowns, and participation progress.
+- English and German interfaces.
+- Supabase authentication, PostgreSQL constraints, and Row Level Security.
+- Protected server routes, optional email delivery, and browser push support.
+
+Built with Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 4,
+Radix primitives, Supabase, and Vercel. Spotify and YouTube use public metadata
+and embeds; the core flow does not require paid provider APIs.
+
+## Known limitations
+
+- There is no dedicated automated test suite yet.
+- Most product UI lives in one large component; feature extraction and typed
+  database definitions are future maintainability work.
+- Notifications depend on provider configuration, device/browser support, and
+  a daily scheduler for deadline-driven events. Native mobile delivery is not
+  implemented.
+- This is a personal project, not a production service with support guarantees.
+
+## Source availability
+
+This repository is public for inspection as a portfolio project. No open-source
+license is granted. Third-party dependencies retain their respective licenses.
 
 ## Project documentation
 
@@ -26,8 +71,10 @@ Production: [https://gems-music.com](https://gems-music.com)
 Requirements: Node.js 20.9+, Docker Desktop, and npm.
 
 ```bash
+npm ci
 npx supabase@latest start
-npm install
+cp .env.example .env.local
+# Fill in the local Supabase values described below before starting the app.
 npm run dev
 ```
 
@@ -77,9 +124,9 @@ immediately. Vercel Hobby runs the remaining automated checks once daily, so a
 deadline-driven fallback is not minute-precise and never sends an old phase as
 a catch-up message.
 
-Every email names its Circle in both the subject and body. There are four email
-categories: an on-demand admin test, a new-round alert, a songs-ready alert,
-and a results-ready alert. Each event is sent once per recipient and round.
+Every email names its Circle in both the subject and body. There are six email
+categories: an on-demand admin test, a new-round alert, a choosing reminder,
+a songs-ready alert, a rating reminder, and a results-ready alert. Each event is sent once per recipient and round.
 
 Allowlisted platform operators can open the gear icon in the top-right user
 menu. The developer console shows whether the two Resend values are present,

@@ -54,6 +54,12 @@ External optional services
   requests.
 - `public/sw.js` receives browser push notifications.
 
+The runtime uses Next.js 16.4.0. The repository no longer carries the unused
+Vite, Vinext, Cloudflare, Wrangler, or Shadcn CLI packages; the existing Radix
+components and Tailwind styling remain. The lockfile includes reviewed
+compatible security updates. Development is paused, so dependency checks must
+be repeated before a future release.
+
 The large UI component is functional but is a known maintainability target. New
 work should avoid making it larger when a cohesive feature can be extracted
 without broad churn.

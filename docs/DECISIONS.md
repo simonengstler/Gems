@@ -4,6 +4,18 @@ Record decisions that future chats should not accidentally reverse. New entries
 go at the top. If a decision changes, add a new entry and mark the old one
 superseded rather than rewriting history.
 
+## 2026-10-11 — Pause development and prepare a public portfolio repository
+
+**Status:** Accepted
+
+Gems is presented as a working personal web project with development paused,
+not as a supported service or a native mobile app. Browser push implementation
+is distinguished from verified dependable delivery. The public source is for
+inspection without an open-source license. Runtime dependency advisories are
+addressed before release, and unused hosting and component-generator tooling
+is removed. Account-specific deployment scope is resolved locally instead of
+being embedded in the public operations guide.
+
 ## 2026-09-02 — Circle navigation carries live context
 
 **Status:** Accepted

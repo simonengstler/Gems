@@ -1,9 +1,16 @@
 # Gems roadmap
 
-Last updated: 2026-09-02
+Last updated: 2026-10-11
 
 This is the shared status board for future chats. Move work between sections as
 its status changes; do not duplicate the same item in multiple sections.
+
+## Current status
+
+Development is paused. Gems remains a working personal web project and may be
+resumed later; the sections below describe possible future work, not an active
+delivery commitment. A native mobile app and verified dependable browser push
+delivery are not shipped outcomes.
 
 ## Shipped
 
@@ -48,7 +55,16 @@ its status changes; do not duplicate the same item in multiple sections.
 - Durable cross-chat operations runbook for local setup, migrations, Vercel
   production release, verification, rollback, and role access.
 
+- Portfolio README, public welcome-screen screenshot, and explicit paused status.
+- Security dependency refresh and removal of unused hosting/generator tooling.
+
 ## Reliability next
+
+- Resolve the remaining development-only `braces` / `micromatch` / `fast-glob`
+  audit chain when compatible ESLint tooling fixes become available. The
+  2026-10-11 production dependency audit is clean; the full audit reports five
+  high-severity development-tooling packages. Do not force an incompatible
+  Next.js lint-config downgrade merely to suppress the report.
 
 - Add an automated test foundation for phase calculation, URL parsing, scoring,
   RLS-sensitive workflows, and critical UI flows.
@@ -75,9 +91,6 @@ its status changes; do not duplicate the same item in multiple sections.
 - Split `src/components/gems-app.tsx` into cohesive feature components and hooks.
 - Generate and use typed Supabase database definitions.
 - Centralize provider parsing and phase calculations in tested domain modules.
-- Remove no-longer-used Vite, Vinext, Cloudflare, and Wrangler dependencies
-  after reviewing the user-owned lockfile state.
-- Review the dependency and lockfile state after the hosting transitions.
 - Update the Vercel service-limit card now that Vercel is the active host.
 
 ## Explicitly deferred
